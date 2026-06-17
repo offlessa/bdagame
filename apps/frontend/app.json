@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Batalha da Aldeia",
+    "slug": "batalha-da-aldeia",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "batalha",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A0A00"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.batalhadaaldeia.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1A0A00"
+      },
+      "package": "com.batalhadaaldeia.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ]
+  }
+}
