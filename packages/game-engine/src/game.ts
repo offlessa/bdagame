@@ -255,7 +255,7 @@ function applyFatalityExtra(
       // Already handled in round calculation — no-op here
       break;
     case 'add_hype':
-      mc.hype = Math.min(3, (mc.hype + (extra.value ?? 1)) as 1 | 2 | 3);
+      mc.hype = Math.min(3, mc.hype + (extra.value ?? 1)) as 1 | 2 | 3;
       break;
     case 'add_barra_if_win_by': {
       const diff = Math.abs(result.attackerScore - result.defenderScore);
