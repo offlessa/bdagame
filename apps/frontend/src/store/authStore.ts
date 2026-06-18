@@ -5,7 +5,7 @@ interface AuthState {
   token: string | null;
   userId: string | null;
   username: string | null;
-  setAuth: (token: string, userId: string, username: string) => Promise<void>;
+  setAuth: (token: string, userId: string, username: string, remember?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   loadFromStorage: () => Promise<void>;
 }
@@ -15,8 +15,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   userId: null,
   username: null,
 
-  setAuth: async (token, userId, username) => {
-    await AsyncStorage.setItem('auth', JSON.stringify({ token, userId, username }));
+  setAuth: async (token, userId, username, remember = true) => {
+    if (remember) {
+      await AsyncStorage.setItem('auth', JSON.stringify({ token, userId, username }));
+    } else {
+      await AsyncStorage.removeItem('auth');
+    }
     set({ token, userId, username });
   },
 
