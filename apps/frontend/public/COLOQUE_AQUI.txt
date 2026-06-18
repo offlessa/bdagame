@@ -1,0 +1,2 @@
+Coloque o arquivo character.riv nesta pasta.
+Depois mude RIVE_READY = true em src/components/CharacterRive.tsx

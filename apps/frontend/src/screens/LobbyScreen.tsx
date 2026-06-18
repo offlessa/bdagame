@@ -4,6 +4,7 @@ import {
   ScrollView, useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
 import { useGameStore } from '../store/gameStore';
@@ -54,7 +55,13 @@ export default function LobbyScreen() {
     <View style={styles.root}>
       {/* ── Navbar ───────────────────────────────────────────────── */}
       <View style={styles.navbar}>
-        <Text style={styles.navLogo}>BATALHA DA ALDEIA</Text>
+        <View style={styles.navLeft}>
+          <TouchableOpacity style={styles.navBackBtn} onPress={() => router.replace('/menu')}>
+            <Ionicons name="arrow-back" size={13} color={Colors.gold} />
+            <Text style={styles.navBackText}>Menu</Text>
+          </TouchableOpacity>
+          <Text style={styles.navLogo}>BATALHAS</Text>
+        </View>
         <View style={styles.navRight}>
           <Text style={styles.navUser}>{username}</Text>
           <TouchableOpacity style={styles.navLogout} onPress={handleLogout}>
@@ -199,12 +206,15 @@ const styles = StyleSheet.create({
   navbar: {
     height: 56, backgroundColor: '#0F0600', borderBottomWidth: 1,
     borderBottomColor: Colors.gold + '30', flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24,
+    alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16,
   },
-  navLogo: { color: Colors.mcOrange, fontWeight: '900', fontSize: 16, letterSpacing: 2 },
-  navRight: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  navLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  navBackBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: Colors.gold + '30' },
+  navBackText: { color: Colors.gold, fontSize: 12 },
+  navLogo: { color: Colors.mcOrange, fontWeight: '900', fontSize: 14, letterSpacing: 2 },
+  navRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   navUser: { color: Colors.gold, fontSize: 13 },
-  navLogout: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: Colors.gold + '40' },
+  navLogout: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: Colors.gold + '40' },
   navLogoutText: { color: Colors.textLight, fontSize: 13 },
 
   // Layout
