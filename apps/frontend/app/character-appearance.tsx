@@ -1,94 +1,39 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView,
-  StyleSheet, Alert, Image,
+  StyleSheet,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuthStore } from '../src/store/authStore';
 import { useCharacterStore, CharacterLook, DEFAULT_LOOK } from '../src/store/characterStore';
 import { Colors } from '../src/theme/colors';
+import { GRAFFITI } from '../src/theme/fonts';
+import CharacterLayered from '../src/components/CharacterLayered';
 
-// ─── Dados de customização ────────────────────────────────────────────────────
+const OPTIONS_5 = ['1', '2', '3', '4', '5'];
+type Category = 'olhos' | 'nariz' | 'boca';
 
-const EXPRESSIONS = [
-  { id: 'confiante',  label: 'Confiante',  icon: '😊' },
-  { id: 'desafiador', label: 'Desafiador', icon: '😤' },
-  { id: 'focado',     label: 'Focado',     icon: '😐' },
-  { id: 'rindo',      label: 'Rindo',      icon: '😄' },
-  { id: 'surpreso',   label: 'Surpreso',   icon: '😮' },
+const CATEGORIES: { id: Category; label: string; emoji: string }[] = [
+  { id: 'olhos', label: 'OLHOS', emoji: '👁' },
+  { id: 'nariz', label: 'NARIZ', emoji: '👃' },
+  { id: 'boca',  label: 'BOCA',  emoji: '🎤' },
 ];
-
-const HATS = [
-  { id: 'bone-preto',    label: 'Boné Preto',    icon: '🧢', color: '#111111' },
-  { id: 'bone-ouro',     label: 'Boné Ouro',     icon: '🧢', color: '#C9A84C' },
-  { id: 'bone-azul',     label: 'Boné Azul',     icon: '🧢', color: '#1565C0' },
-  { id: 'bone-vermelho', label: 'Boné Vermelho',  icon: '🧢', color: '#C62828' },
-  { id: 'bandana',       label: 'Bandana',        icon: '🎀', color: '#C62828' },
-  { id: 'touca',         label: 'Touca',          icon: '🎩', color: '#333333' },
-  { id: 'sem',           label: 'Sem chapéu',     icon: '—',  color: 'transparent' },
-];
-
-const HOODIES = [
-  { id: 'preto',    label: 'Preto',    color: '#111111' },
-  { id: 'cinza',    label: 'Cinza',    color: '#555555' },
-  { id: 'azul',     label: 'Azul',     color: '#1565C0' },
-  { id: 'vermelho', label: 'Vermelho', color: '#B71C1C' },
-  { id: 'verde',    label: 'Verde',    color: '#2E7D32' },
-  { id: 'laranja',  label: 'Laranja',  color: '#E85E00' },
-  { id: 'roxo',     label: 'Roxo',     color: '#5B2D8E' },
-  { id: 'branco',   label: 'Branco',   color: '#d8d8d8' },
-];
-
-const PANTS = [
-  { id: 'cargo-verde', label: 'Cargo Verde', color: '#4a5240' },
-  { id: 'jeans',       label: 'Jeans',       color: '#1e3a6e' },
-  { id: 'cargo-preto', label: 'Cargo Preto', color: '#111111' },
-  { id: 'camuflado',   label: 'Camuflado',   color: '#3d4a2e' },
-  { id: 'branco',      label: 'Branco',      color: '#d0d0d0' },
-  { id: 'vinho',       label: 'Vinho',       color: '#6a1428' },
-];
-
-const SHOES = [
-  { id: 'tenis',   label: 'Tênis',   icon: '👟' },
-  { id: 'bota',    label: 'Bota',    icon: '👢' },
-  { id: 'casual',  label: 'Casual',  icon: '👞' },
-  { id: 'chinelo', label: 'Chinelo', icon: '🩴' },
-];
-
-const ACCESSORIES = [
-  { id: 'corrente',  label: 'Corrente',  icon: '⛓️' },
-  { id: 'relogio',   label: 'Relógio',   icon: '⌚' },
-  { id: 'oculos',    label: 'Óculos',    icon: '🕶️' },
-  { id: 'microfone', label: 'Microfone', icon: '🎤' },
-  { id: 'sem',       label: 'Nenhum',    icon: '—' },
-];
-
-type Category = 'expressao' | 'bone' | 'roupa' | 'calca' | 'tenis' | 'acessorio';
-
-const CATEGORIES: { id: Category; label: string; icon: string }[] = [
-  { id: 'expressao', label: 'Expressão', icon: '😊' },
-  { id: 'bone',      label: 'Boné',      icon: '🧢' },
-  { id: 'roupa',     label: 'Roupa',     icon: '👕' },
-  { id: 'calca',     label: 'Calça',     icon: '👖' },
-  { id: 'tenis',     label: 'Tênis',     icon: '👟' },
-  { id: 'acessorio', label: 'Acessório', icon: '⛓️' },
-];
-
-// ─── Preview do personagem ────────────────────────────────────────────────────
-
-// ─── Tela principal ───────────────────────────────────────────────────────────
 
 export default function CharacterAppearanceScreen() {
   const { userId } = useAuthStore();
   const { character, updateLook } = useCharacterStore();
 
-  const [look, setLook] = useState<CharacterLook>(character?.look ?? DEFAULT_LOOK);
-  const [category, setCategory] = useState<Category>('expressao');
+  const initialLook: CharacterLook =
+    character?.look && 'olhos' in character.look
+      ? (character.look as CharacterLook)
+      : DEFAULT_LOOK;
 
-  function select(field: keyof CharacterLook, value: string) {
-    setLook(prev => ({ ...prev, [field]: value }));
+  const [look, setLook] = useState<CharacterLook>(initialLook);
+  const [category, setCategory] = useState<Category>('olhos');
+
+  function select(value: string) {
+    setLook(prev => ({ ...prev, [category]: value }));
   }
 
   async function handleSave() {
@@ -96,204 +41,181 @@ export default function CharacterAppearanceScreen() {
     router.back();
   }
 
-  const categoryItems = {
-    expressao: EXPRESSIONS.map(e => ({ id: e.id, label: e.label, icon: e.icon })),
-    bone:      HATS.map(h => ({ id: h.id, label: h.label, icon: h.icon, color: h.color })),
-    roupa:     HOODIES.map(h => ({ id: h.id, label: h.label, color: h.color })),
-    calca:     PANTS.map(p => ({ id: p.id, label: p.label, color: p.color })),
-    tenis:     SHOES.map(s => ({ id: s.id, label: s.label, icon: s.icon })),
-    acessorio: ACCESSORIES.map(a => ({ id: a.id, label: a.label, icon: a.icon })),
-  };
-
-  const fieldMap: Record<Category, keyof CharacterLook> = {
-    expressao: 'expression',
-    bone:      'hat',
-    roupa:     'hoodie',
-    calca:     'pants',
-    tenis:     'shoes',
-    acessorio: 'accessory',
-  };
-
-  const currentValue = look[fieldMap[category]];
-  const isColor = category === 'roupa' || category === 'calca';
+  const accent = character?.archetypeColor ?? Colors.primary;
+  const currentValue = look[category];
 
   return (
-    <LinearGradient colors={['#1F0A00', '#1A0A00', '#0D0400']} style={styles.bg}>
+    <View style={s.bg}>
 
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={20} color={Colors.gold} />
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+          <Ionicons name="chevron-back" size={22} color={Colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>PERSONAGEM</Text>
-        <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
-          <Text style={styles.saveBtnText}>SALVAR</Text>
+        <View style={s.headerCenter}>
+          <Text style={s.headerSub}>RAP BATTLE</Text>
+          <Text style={s.headerTitle}>CRIADOR DE MC</Text>
+        </View>
+        <TouchableOpacity onPress={handleSave} style={[s.saveBtn, { backgroundColor: accent }]}>
+          <Text style={s.saveBtnTxt}>SALVAR</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Preview */}
-      <View style={styles.previewArea}>
-        <LinearGradient
-          colors={['#2A1000', '#1A0A00']}
-          style={styles.previewCard}
-        >
-          {/* Decoração de fundo */}
-          <View style={[styles.previewGlow, { backgroundColor: (character?.archetypeColor ?? Colors.gold) + '18' }]} />
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
-          <Image
-            source={{ uri: '/character-base.jpg' }}
-            style={{ width: 160, height: 220 }}
-            resizeMode="contain"
-          />
+        {/* Preview */}
+        <View style={[s.previewCard, { borderColor: accent + '50' }]}>
+          <View style={[s.halo, { backgroundColor: accent }]} />
 
-          <View style={styles.previewInfo}>
-            <Text style={styles.previewName}>{character?.battleName ?? 'MC'}</Text>
-            <Text style={[styles.previewArch, { color: character?.archetypeColor ?? Colors.gold }]}>
-              {character?.archetype ?? ''}
-            </Text>
+          <Text style={[s.cornerStar, { top: 10, left: 14, color: accent + '50' }]}>✦</Text>
+          <Text style={[s.cornerStar, { top: 10, right: 14, color: accent + '50' }]}>✦</Text>
+
+          <View style={[s.mcBadge, { backgroundColor: accent }]}>
+            <Text style={s.mcBadgeTxt}>SEU MC</Text>
           </View>
-        </LinearGradient>
-      </View>
 
-      {/* Category tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll} contentContainerStyle={styles.tabsContent}>
-        {CATEGORIES.map(cat => (
-          <TouchableOpacity
-            key={cat.id}
-            style={[styles.tab, category === cat.id && styles.tabActive]}
-            onPress={() => setCategory(cat.id)}
-          >
-            <Text style={styles.tabIcon}>{cat.icon}</Text>
-            <Text style={[styles.tabLabel, category === cat.id && styles.tabLabelActive]}>
-              {cat.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+          <CharacterLayered look={look} size={340} />
 
-      {/* Items */}
-      <ScrollView contentContainerStyle={styles.itemsGrid} showsVerticalScrollIndicator={false}>
-        {categoryItems[category].map((item) => {
-          const selected = item.id === currentValue;
-          if (isColor && 'color' in item) {
-            // Color swatch
+          <View style={s.nameStrip}>
+            <Text style={s.mcName}>{character?.battleName ?? 'SEU MC'}</Text>
+            <View style={[s.archBadge, { borderColor: accent }]}>
+              <Text style={[s.archTxt, { color: accent }]}>
+                {character?.archetypeIcon ?? '🎤'} {character?.archetype ?? 'MC'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={[s.accentBar, { backgroundColor: accent }]} />
+        </View>
+
+        {/* Divider */}
+        <View style={s.divider}>
+          <View style={s.divLine} />
+          <Text style={[s.divTxt, { color: accent + '80' }]}>CUSTOMIZE</Text>
+          <View style={s.divLine} />
+        </View>
+
+        {/* Tabs */}
+        <View style={s.tabs}>
+          {CATEGORIES.map(cat => {
+            const active = category === cat.id;
             return (
               <TouchableOpacity
-                key={item.id}
-                style={[styles.colorItem, selected && styles.colorItemSelected]}
-                onPress={() => select(fieldMap[category], item.id)}
-                activeOpacity={0.7}
+                key={cat.id}
+                style={[s.tab, active && { backgroundColor: accent, borderColor: accent }]}
+                onPress={() => setCategory(cat.id)}
+                activeOpacity={0.75}
               >
-                <View style={[styles.colorSwatch, { backgroundColor: item.color as string }]}>
-                  {selected && <Ionicons name="checkmark" size={18} color="#fff" />}
-                </View>
-                <Text style={[styles.itemLabel, selected && styles.itemLabelActive]}>{item.label}</Text>
+                <Text style={s.tabEmoji}>{cat.emoji}</Text>
+                <Text style={[s.tabLabel, active && { color: Colors.bg }]}>{cat.label}</Text>
               </TouchableOpacity>
             );
-          }
-          // Emoji item
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={[styles.emojiItem, selected && styles.emojiItemSelected]}
-              onPress={() => select(fieldMap[category], item.id)}
-              activeOpacity={0.7}
-            >
-              {'color' in item && item.color !== 'transparent' && (
-                <View style={[styles.emojiColorDot, { backgroundColor: item.color as string }]} />
-              )}
-              <Text style={styles.emojiIcon}>{'icon' in item ? item.icon as string : ''}</Text>
-              <Text style={[styles.itemLabel, selected && styles.itemLabelActive]}>{item.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+          })}
+        </View>
 
-    </LinearGradient>
+        {/* Options */}
+        <View style={s.grid}>
+          {OPTIONS_5.map(id => {
+            const sel = id === currentValue;
+            return (
+              <TouchableOpacity
+                key={id}
+                style={[s.optCard, { borderColor: sel ? accent : Colors.border }, sel && { backgroundColor: accent + '12' }]}
+                onPress={() => select(id)}
+                activeOpacity={0.7}
+              >
+                {sel && (
+                  <View style={[s.crown, { backgroundColor: accent }]}>
+                    <Text style={s.crownTxt}>👑</Text>
+                  </View>
+                )}
+                <View style={s.thumbBox}>
+                  <Text style={[s.thumbNum, { color: sel ? accent : Colors.muted }]}>{id}</Text>
+                </View>
+                <Text style={[s.optLabel, sel && { color: accent }]}>OPÇÃO {id}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </View>
   );
 }
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  bg: { flex: 1 },
+const s = StyleSheet.create({
+  bg: { flex: 1, backgroundColor: Colors.bg },
 
   header: {
-    height: 52, flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', paddingHorizontal: 16,
-    borderBottomWidth: 1, borderBottomColor: Colors.gold + '20',
+    height: 56, flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12,
+    borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
-  backBtn: { padding: 4 },
-  headerTitle: { color: Colors.white, fontWeight: '900', fontSize: 14, letterSpacing: 3 },
-  saveBtn: {
-    backgroundColor: Colors.mcOrange, borderRadius: 7,
-    paddingHorizontal: 14, paddingVertical: 6,
-  },
-  saveBtnText: { color: Colors.white, fontWeight: '900', fontSize: 12, letterSpacing: 2 },
+  backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  headerCenter: { flex: 1, alignItems: 'center' },
+  headerSub: { fontFamily: GRAFFITI, color: Colors.muted, fontSize: 14, letterSpacing: 5 },
+  headerTitle: { fontFamily: GRAFFITI, color: Colors.white, fontSize: 20, letterSpacing: 4 },
+  saveBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 3 },
+  saveBtnTxt: { fontFamily: GRAFFITI, color: Colors.bg, fontSize: 18, letterSpacing: 3 },
 
-  // Preview
-  previewArea: { alignItems: 'center', paddingVertical: 16 },
+  scroll: { alignItems: 'center', paddingTop: 24, paddingHorizontal: 20 },
+
   previewCard: {
-    width: 200, borderRadius: 18,
-    borderWidth: 1, borderColor: Colors.gold + '30',
-    paddingTop: 14, paddingBottom: 14, alignItems: 'center',
-    overflow: 'hidden',
+    width: 340, borderRadius: 12,
+    borderWidth: 1.5,
+    backgroundColor: Colors.card,
+    alignItems: 'center',
+    paddingTop: 14, paddingBottom: 0,
+    overflow: 'hidden', position: 'relative', marginBottom: 8,
   },
-  previewGlow: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+  halo: {
+    position: 'absolute', top: 20, left: 30, right: 30, bottom: 20,
+    borderRadius: 24, opacity: 0.10,
   },
-  previewInfo: { alignItems: 'center', marginTop: 12 },
-  previewName: { color: Colors.white, fontWeight: '900', fontSize: 15, letterSpacing: 1 },
-  previewArch: { fontSize: 11, fontWeight: '700', letterSpacing: 2, marginTop: 2 },
+  cornerStar: { position: 'absolute', fontSize: 14 },
+  mcBadge: { paddingHorizontal: 14, paddingVertical: 4, borderRadius: 20, marginBottom: 6 },
+  mcBadgeTxt: { fontFamily: GRAFFITI, color: Colors.bg, fontSize: 14, letterSpacing: 4 },
+  nameStrip: { width: '100%', alignItems: 'center', paddingTop: 12, paddingBottom: 14, backgroundColor: Colors.card },
+  mcName: { fontFamily: GRAFFITI, color: Colors.white, fontSize: 26, letterSpacing: 3, textTransform: 'uppercase' },
+  archBadge: { marginTop: 4, borderWidth: 1.5, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 3 },
+  archTxt: { fontFamily: GRAFFITI, fontSize: 16, letterSpacing: 4 },
+  accentBar: { width: '80%', height: 3, borderRadius: 2 },
 
-  // Tabs
-  tabsScroll: { maxHeight: 60, flexGrow: 0 },
-  tabsContent: { paddingHorizontal: 12, gap: 8, alignItems: 'center' },
+  divider: { flexDirection: 'row', alignItems: 'center', width: '100%', marginVertical: 20 },
+  divLine: { flex: 1, height: 1, backgroundColor: Colors.border },
+  divTxt: { fontFamily: GRAFFITI, fontSize: 14, letterSpacing: 5, marginHorizontal: 10 },
+
+  tabs: { flexDirection: 'row', gap: 8, marginBottom: 20, width: '100%' },
   tab: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: Colors.gold + '25',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 5, paddingVertical: 10, borderRadius: 4,
+    borderWidth: 1.5, borderColor: Colors.border,
+    backgroundColor: Colors.card,
   },
-  tabActive: { backgroundColor: Colors.mcOrange + '20', borderColor: Colors.mcOrange + '70' },
-  tabIcon: { fontSize: 14 },
-  tabLabel: { color: Colors.textLight, fontSize: 12, fontWeight: '600' },
-  tabLabelActive: { color: Colors.mcOrange, fontWeight: '900' },
+  tabEmoji: { fontSize: 16 },
+  tabLabel: { fontFamily: GRAFFITI, color: Colors.muted, fontSize: 16, letterSpacing: 3 },
 
-  // Items grid
-  itemsGrid: {
-    flexDirection: 'row', flexWrap: 'wrap',
-    paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 10,
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, width: '100%', justifyContent: 'center' },
+  optCard: {
+    width: 95, borderRadius: 6,
+    borderWidth: 2,
+    backgroundColor: Colors.card,
+    alignItems: 'center', paddingVertical: 12, paddingHorizontal: 8,
+    overflow: 'visible', position: 'relative',
   },
-
-  // Color item
-  colorItem: {
-    alignItems: 'center', gap: 6, padding: 6,
-    borderRadius: 10, borderWidth: 1.5, borderColor: 'transparent',
-    width: '22%',
+  crown: {
+    position: 'absolute', top: -10, right: -6,
+    width: 24, height: 24, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center', zIndex: 10,
   },
-  colorItemSelected: { borderColor: Colors.mcOrange },
-  colorSwatch: {
-    width: 44, height: 44, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+  crownTxt: { fontSize: 12 },
+  thumbBox: {
+    width: 64, height: 64, borderRadius: 6,
+    backgroundColor: Colors.surface,
+    borderWidth: 1, borderColor: Colors.border,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 4,
   },
-
-  // Emoji item
-  emojiItem: {
-    alignItems: 'center', gap: 4, padding: 8,
-    borderRadius: 10, borderWidth: 1.5, borderColor: Colors.gold + '20',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    width: '22%', position: 'relative',
-  },
-  emojiItemSelected: { borderColor: Colors.mcOrange, backgroundColor: Colors.mcOrange + '12' },
-  emojiColorDot: {
-    position: 'absolute', top: 6, right: 6,
-    width: 8, height: 8, borderRadius: 4,
-  },
-  emojiIcon: { fontSize: 28 },
-
-  // Shared label
-  itemLabel: { color: Colors.textLight, fontSize: 10, textAlign: 'center' },
-  itemLabelActive: { color: Colors.mcOrange, fontWeight: '700' },
+  thumbNum: { fontSize: 22, fontWeight: '900' },
+  optLabel: { fontFamily: GRAFFITI, color: Colors.muted, fontSize: 14, letterSpacing: 2, textAlign: 'center', paddingTop: 2 },
 });

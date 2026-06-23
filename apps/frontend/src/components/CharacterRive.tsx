@@ -25,7 +25,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, Linking } from 'react-native';
 import { useRive, useStateMachineInput, Fit, Alignment, Layout } from '@rive-app/react-canvas';
 import { CharacterLook } from '../store/characterStore';
 import { Colors } from '../theme/colors';
@@ -35,21 +35,9 @@ const RIVE_READY = false;
 
 const STATE_MACHINE = 'Customize';
 
-const HAT_IDX: Record<string, number> = {
-  'bone-preto': 0, 'bone-ouro': 1, 'bone-azul': 2, 'bone-vermelho': 3,
-  bandana: 4, touca: 5, sem: 6,
-};
-const HOODIE_IDX: Record<string, number> = {
-  preto: 0, cinza: 1, azul: 2, vermelho: 3, verde: 4, laranja: 5, roxo: 6, branco: 7,
-};
-const PANTS_IDX: Record<string, number> = {
-  'cargo-verde': 0, jeans: 1, 'cargo-preto': 2, camuflado: 3, branco: 4, vinho: 5,
-};
-const SHOES_IDX: Record<string, number> = { tenis: 0, bota: 1, casual: 2, chinelo: 3 };
-const ACC_IDX: Record<string, number> = { corrente: 0, relogio: 1, oculos: 2, microfone: 3, sem: 4 };
-const EXPR_IDX: Record<string, number> = {
-  confiante: 0, desafiador: 1, focado: 2, rindo: 3, surpreso: 4,
-};
+const OLHOS_IDX: Record<string, number> = { '1': 0, '2': 1, '3': 2, '4': 3, '5': 4 };
+const NARIZ_IDX: Record<string, number> = { '1': 0, '2': 1, '3': 2, '4': 3, '5': 4 };
+const BOCA_IDX:  Record<string, number> = { '1': 0, '2': 1, '3': 2, '4': 3, '5': 4 };
 
 interface Props {
   look: CharacterLook;
@@ -66,7 +54,7 @@ export default function CharacterRive({ look, archetypeColor, size = 180 }: Prop
 
 // ─── Rive real (ativo quando RIVE_READY = true) ────────────────────────────
 
-function RiveCharacter({ look, size }: Props) {
+function RiveCharacter({ look, size = 180 }: Props) {
   const height = Math.round(size * 1.7);
 
   const { rive, RiveComponent } = useRive({
@@ -76,19 +64,13 @@ function RiveCharacter({ look, size }: Props) {
     layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
-  const hatInput       = useStateMachineInput(rive, STATE_MACHINE, 'hat');
-  const hoodieInput    = useStateMachineInput(rive, STATE_MACHINE, 'hoodie');
-  const pantsInput     = useStateMachineInput(rive, STATE_MACHINE, 'pants');
-  const shoesInput     = useStateMachineInput(rive, STATE_MACHINE, 'shoes');
-  const accInput       = useStateMachineInput(rive, STATE_MACHINE, 'accessory');
-  const exprInput      = useStateMachineInput(rive, STATE_MACHINE, 'expression');
+  const olhosInput = useStateMachineInput(rive, STATE_MACHINE, 'olhos');
+  const narizInput = useStateMachineInput(rive, STATE_MACHINE, 'nariz');
+  const bocaInput  = useStateMachineInput(rive, STATE_MACHINE, 'boca');
 
-  useEffect(() => { if (hatInput)    hatInput.value    = HAT_IDX[look.hat]         ?? 0; }, [look.hat,        hatInput]);
-  useEffect(() => { if (hoodieInput) hoodieInput.value = HOODIE_IDX[look.hoodie]   ?? 0; }, [look.hoodie,     hoodieInput]);
-  useEffect(() => { if (pantsInput)  pantsInput.value  = PANTS_IDX[look.pants]     ?? 0; }, [look.pants,      pantsInput]);
-  useEffect(() => { if (shoesInput)  shoesInput.value  = SHOES_IDX[look.shoes]     ?? 0; }, [look.shoes,      shoesInput]);
-  useEffect(() => { if (accInput)    accInput.value    = ACC_IDX[look.accessory]   ?? 4; }, [look.accessory,  accInput]);
-  useEffect(() => { if (exprInput)   exprInput.value   = EXPR_IDX[look.expression] ?? 0; }, [look.expression, exprInput]);
+  useEffect(() => { if (olhosInput) olhosInput.value = OLHOS_IDX[look.olhos] ?? 0; }, [look.olhos, olhosInput]);
+  useEffect(() => { if (narizInput) narizInput.value = NARIZ_IDX[look.nariz] ?? 0; }, [look.nariz, narizInput]);
+  useEffect(() => { if (bocaInput)  bocaInput.value  = BOCA_IDX[look.boca]   ?? 0; }, [look.boca,  bocaInput]);
 
   return (
     <View style={{ width: size, height }}>

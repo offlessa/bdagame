@@ -2,21 +2,15 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface CharacterLook {
-  expression: string;
-  hat: string;
-  hoodie: string;
-  pants: string;
-  shoes: string;
-  accessory: string;
+  olhos: string;   // '1'–'5'
+  nariz: string;   // '1'–'5'
+  boca: string;    // '1'–'5'
 }
 
 export const DEFAULT_LOOK: CharacterLook = {
-  expression: 'confiante',
-  hat: 'bone-preto',
-  hoodie: 'preto',
-  pants: 'cargo-verde',
-  shoes: 'tenis',
-  accessory: 'corrente',
+  olhos: '1',
+  nariz: '1',
+  boca: '1',
 };
 
 export interface Character {

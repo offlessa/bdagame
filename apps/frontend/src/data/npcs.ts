@@ -1,0 +1,167 @@
+import { NPC } from '../types/game';
+
+export const NPCS: NPC[] = [
+  {
+    id: 'zé-do-beco',
+    name: 'Zé do Beco',
+    nickname: 'O Iniciante',
+    battleName: 'Batalha do Beco',
+    emoji: '🧢',
+    personality: 'chill',
+    friendliness: 2,
+    difficulty: 1,
+    location: 'underground-sp',
+    preferredBeats: ['freestyle'],
+    attributes: { flow: 4, tecnica: 3, frieza: 4, inteligencia: 3, presenca: 5, punchline: 4 },
+    inscricao: 'Gratuita',
+    premiacao: 'Reconhecimento + 50 XP',
+    mcsConfirmados: ['Zé do Beco', 'MC Trovão', 'Lil Beco', 'Rafa Verso', 'DJ Flash', 'Slot aberto'],
+    formato: '1v1 · 3 Rounds',
+    catchphrase: 'Chega junto, parceiro!',
+    greetings: [
+      'Ei, você é novo por aqui?',
+      'Bora trocar um verso?',
+      'Não vai embora sem batalhar comigo!',
+    ],
+    winLines: [
+      'Tá vendo? Aprende, moleque!',
+      'Treina mais antes de vir me desafiar.',
+    ],
+    lossLines: [
+      'Caramba, você é bom mesmo...',
+      'Revanche quando você quiser!',
+    ],
+  },
+  {
+    id: 'luana-flow',
+    name: 'Luana Flow',
+    nickname: 'A Lyricista',
+    battleName: 'Batalha da Pedreira',
+    emoji: '🎤',
+    personality: 'timido',
+    friendliness: 4,
+    difficulty: 1,
+    location: 'underground-sp',
+    preferredBeats: ['old-school', 'conscious'],
+    attributes: { flow: 5, tecnica: 6, frieza: 3, inteligencia: 6, presenca: 4, punchline: 5 },
+    inscricao: 'R$ 5',
+    premiacao: 'R$ 100 + 50 XP',
+    mcsConfirmados: ['Luana Flow', 'MC Pedra', 'Silvinha Rima', 'Bino Flow', 'Tata Versos', 'Slot aberto'],
+    formato: '1v1 · 3 Rounds',
+    catchphrase: 'Cada palavra conta.',
+    greetings: [
+      'Hmm... não costumo batalhar com qualquer um.',
+      'Se você respeita o jogo, bora.',
+      'Vou deixar minha letra falar por mim.',
+    ],
+    winLines: [
+      'Técnica vence sempre.',
+      'Você ainda tem muito a aprender sobre lírica.',
+    ],
+    lossLines: [
+      'Você... me surpreendeu.',
+      'Foi um bom combate. Chapéu.',
+    ],
+  },
+  {
+    id: 'dread-beats',
+    name: 'Dread Beats',
+    nickname: 'O Agitador',
+    battleName: 'Batalha do Complexo',
+    emoji: '🦁',
+    personality: 'agitado',
+    friendliness: 6,
+    difficulty: 2,
+    location: 'underground-sp',
+    preferredBeats: ['trap', 'drill'],
+    attributes: { flow: 7, tecnica: 4, frieza: 5, inteligencia: 4, presenca: 8, punchline: 6 },
+    inscricao: 'R$ 10',
+    premiacao: 'R$ 300 + Troféu',
+    mcsConfirmados: ['Dread Beats', 'MC Fúria', 'Kamika Z', 'Don Bruto', 'Sina do Complexo', 'Nego Rima'],
+    formato: '1v1 · 3 Rounds + Decisão Musical',
+    catchphrase: 'A PLATEIA É MINHA!',
+    greetings: [
+      'AAAAI! Chegou alguém pra batalhar!',
+      'Você tem coragem, vou dar isso pra você!',
+      'Tô aquecido, pode vir!',
+    ],
+    winLines: [
+      'ISSO É RAP! CHORA!',
+      'Sabia que ia ganhar desde o começo!',
+    ],
+    lossLines: [
+      'Que...? Como assim?!',
+      'Ok ok ok. Você foi real. Respeito.',
+    ],
+  },
+  {
+    id: 'fantasma',
+    name: 'Fantasma',
+    nickname: 'O Misterioso',
+    battleName: 'Batalha das Sombras',
+    emoji: '👤',
+    personality: 'misterioso',
+    friendliness: 9,
+    difficulty: 2,
+    location: 'underground-sp',
+    preferredBeats: ['boom-bap', 'drill'],
+    attributes: { flow: 6, tecnica: 5, frieza: 9, inteligencia: 7, presenca: 6, punchline: 7 },
+    inscricao: 'R$ 20',
+    premiacao: 'R$ 500 + Folhinha',
+    mcsConfirmados: ['Fantasma', 'MC Sombra', 'Void', 'Kira Dark', 'Espectro', 'Slot aberto'],
+    formato: '1v1 · 3 Rounds + Decisão Musical',
+    catchphrase: '...',
+    greetings: [
+      '...',
+      'Você quer batalhar. Ok.',
+      'Não costumo falar muito. Deixa o verso falar.',
+    ],
+    winLines: [
+      '.',
+      'Era esperado.',
+    ],
+    lossLines: [
+      'Interessante.',
+      'Você tem algo diferente.',
+    ],
+  },
+  {
+    id: 'dona-cida',
+    name: 'Dona Cida',
+    nickname: 'A Veterana',
+    battleName: 'Batalha do Trono',
+    emoji: '👑',
+    personality: 'arrogante',
+    friendliness: 8,
+    difficulty: 3,
+    location: 'underground-sp',
+    preferredBeats: ['samba-rap', 'old-school'],
+    attributes: { flow: 7, tecnica: 7, frieza: 7, inteligencia: 8, presenca: 9, punchline: 9 },
+    inscricao: 'R$ 50',
+    premiacao: 'R$ 2.000 + Coroa do Trono',
+    mcsConfirmados: ['Dona Cida', 'MC Coroa', 'Rainha Rima', 'Xará', 'Soldado do Trono', 'Kleber K', 'Bino', '+ 1 vaga'],
+    formato: 'Eliminatória · Chave de 8',
+    catchphrase: 'Eu fiz a cena que você tá pisando.',
+    greetings: [
+      'Mais um novato querendo glória.',
+      'Você sabe com quem está falando?',
+      'Se você for bom, vai ser uma batalha interessante. Se não for, vai ser rápido.',
+    ],
+    winLines: [
+      'Como esperado. Próximo.',
+      'Quando você tiver 10 anos de estrada, me chama.',
+    ],
+    lossLines: [
+      'Hm. Não esperava isso.',
+      'Você vai longe. Mas ainda tem muito pela frente.',
+    ],
+  },
+];
+
+export function getNPC(id: string): NPC | undefined {
+  return NPCS.find(n => n.id === id);
+}
+
+export function getNPCsByLocation(mapId: string): NPC[] {
+  return NPCS.filter(n => n.location === mapId);
+}
