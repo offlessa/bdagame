@@ -111,7 +111,7 @@ export interface GameMap {
 
 export interface CareerState {
   level: number;
-  xp: number;
+  rp: number;
   hype: number;
   attributePoints: number;
   attributes: Attributes;

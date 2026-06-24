@@ -10,8 +10,8 @@ const BASE_ATTRS: Attributes = {
 
 const INITIAL: CareerState = {
   level: 1,
-  xp: 0,
-  hype: 0,             // dias consecutivos jogando (streak)
+  rp: 0,
+  hype: 0,
   attributePoints: 0,
   attributes: { ...BASE_ATTRS },
   currentMapId: 'underground-sp',
@@ -36,13 +36,13 @@ function yesterdayStr(): string {
   return d.toISOString().split('T')[0];
 }
 
-// ── XP ───────────────────────────────────────────────────────────────────────
+// ── RP (Pontos de Rima) ───────────────────────────────────────────────────────
 
-export function xpForLevel(level: number): number {
+export function rpForLevel(level: number): number {
   return level * 100;
 }
 
-export function xpFromBattle(won: boolean, difficulty: 1 | 2 | 3, playerScore: number, npcScore: number): number {
+export function rpFromBattle(won: boolean, difficulty: 1 | 2 | 3, playerScore: number, npcScore: number): number {
   const base  = won ? 50 : 15;
   const bonus = Math.floor(Math.max(0, playerScore - npcScore) / 10);
   return (base + bonus) * difficulty;
@@ -74,7 +74,15 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
   async load() {
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (raw) set({ ...INITIAL, ...JSON.parse(raw) });
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Migração: campo antigo xp → rp
+        if ('xp' in parsed && !('rp' in parsed)) {
+          parsed.rp = parsed.xp;
+          delete parsed.xp;
+        }
+        set({ ...INITIAL, ...parsed });
+      }
     } catch {}
   },
 
@@ -89,15 +97,14 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
     } catch {}
   },
 
-  // Atualiza o streak de dias consecutivos — chamar quando o usuário joga
   registerDayStreak() {
     const s     = get();
     const today = todayStr();
-    if (s.lastPlayedDate === today) return; // já jogou hoje, não muda nada
+    if (s.lastPlayedDate === today) return;
 
     const newHype = s.lastPlayedDate === yesterdayStr()
-      ? s.hype + 1   // jogou ontem → continua a sequência
-      : 1;           // perdeu a sequência (ou primeiro dia) → começa em 1
+      ? s.hype + 1
+      : 1;
 
     set({ hype: newHype, lastPlayedDate: today });
     get().save();
@@ -115,14 +122,14 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
 
   addBattleResult({ won, npcId, difficulty, playerScore, npcScore }) {
     const s        = get();
-    const gainedXp = xpFromBattle(won, difficulty, playerScore, npcScore);
+    const gainedRp = rpFromBattle(won, difficulty, playerScore, npcScore);
 
-    let newXp     = s.xp + gainedXp;
+    let newRp     = s.rp + gainedRp;
     let newLevel  = s.level;
     let newPoints = s.attributePoints;
 
-    while (newXp >= xpForLevel(newLevel)) {
-      newXp -= xpForLevel(newLevel);
+    while (newRp >= rpForLevel(newLevel)) {
+      newRp    -= rpForLevel(newLevel);
       newLevel  += 1;
       newPoints += 2;
     }
@@ -131,9 +138,8 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
       ? [...s.defeatedNpcIds, npcId]
       : s.defeatedNpcIds;
 
-    set({ xp: newXp, level: newLevel, attributePoints: newPoints, defeatedNpcIds });
+    set({ rp: newRp, level: newLevel, attributePoints: newPoints, defeatedNpcIds });
 
-    // Registra o dia independente de ganhar ou perder
     get().registerDayStreak();
     get().save();
   },

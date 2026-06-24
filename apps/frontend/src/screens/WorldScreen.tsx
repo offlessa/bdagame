@@ -6,7 +6,7 @@ import {
 import Svg, { Line, Circle, Rect } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useCareerStore, xpForLevel } from '../store/careerStore';
+import { useCareerStore, rpForLevel } from '../store/careerStore';
 import { useCharacterStore, DEFAULT_LOOK } from '../store/characterStore';
 import { useBattleStore } from '../store/battleStore';
 import { getNPCsByLocation } from '../data/npcs';
@@ -325,8 +325,8 @@ export default function WorldScreen() {
   const [modalVisible, setModalVisible] = useState(false);
 
   const npcs     = getNPCsByLocation(career.currentMapId);
-  const xpNeeded = xpForLevel(career.level);
-  const xpPct    = Math.min(100, (career.xp / xpNeeded) * 100);
+  const rpNeeded = rpForLevel(career.level);
+  const rpPct    = Math.min(100, (career.rp / rpNeeded) * 100);
 
   return (
     <ImageBackground source={BG} style={s.root} resizeMode="cover">
@@ -358,9 +358,9 @@ export default function WorldScreen() {
           <Text style={s.hudName}>{character?.battleName ?? 'MC'}</Text>
           <View style={s.xpRow}>
             <View style={s.xpBg}>
-              <View style={[s.xpFill, { width: `${xpPct}%` as any }]} />
+              <View style={[s.xpFill, { width: `${rpPct}%` as any }]} />
             </View>
-            <Text style={s.xpTxt}>{career.xp} / {xpNeeded} XP</Text>
+            <Text style={s.xpTxt}>{career.rp} / {rpNeeded} RP</Text>
           </View>
         </View>
         <View style={s.hudHype}>

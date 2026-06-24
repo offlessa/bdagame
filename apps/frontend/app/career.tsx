@@ -1,98 +1,130 @@
 import React from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
+  ImageBackground, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useCareerStore, xpForLevel } from '../src/store/careerStore';
-import { useCharacterStore } from '../src/store/characterStore';
+import { useCareerStore, rpForLevel } from '../src/store/careerStore';
+import { useCharacterStore, DEFAULT_LOOK } from '../src/store/characterStore';
 import { Colors } from '../src/theme/colors';
 import { GRAFFITI } from '../src/theme/fonts';
 import { AttributeKey } from '../src/types/game';
+import CharacterLayered from '../src/components/CharacterLayered';
+
+const GOLD   = '#FFAA00';
+const PURPLE = '#9D00FF';
+const BG = Platform.OS === 'web' ? { uri: '/bg-wall.png' } : require('../public/bg-wall.png');
 
 const ATTRS: { key: AttributeKey; label: string; emoji: string; color: string; desc: string }[] = [
-  { key: 'flow',        label: 'Flow',        emoji: '🌊', color: Colors.flow,         desc: 'Ritmo e cadência das rimas' },
-  { key: 'tecnica',     label: 'Técnica',     emoji: '🎯', color: Colors.tecnica,      desc: 'Precisão lírica e métrica' },
-  { key: 'frieza',      label: 'Frieza',      emoji: '🧊', color: Colors.frieza,       desc: 'Controle sob pressão' },
-  { key: 'inteligencia',label: 'Inteligência',emoji: '🧠', color: Colors.inteligencia, desc: 'Profundidade e referências' },
-  { key: 'presenca',    label: 'Presença',    emoji: '🎤', color: Colors.presenca,     desc: 'Impacto na plateia' },
-  { key: 'punchline',   label: 'Punchline',   emoji: '💥', color: Colors.punchline,    desc: 'Força das frases de efeito' },
+  { key: 'flow',        label: 'Flow',        emoji: '🌊', color: '#3498DB', desc: 'Ritmo e cadência' },
+  { key: 'tecnica',     label: 'Técnica',     emoji: '🎯', color: '#E67E22', desc: 'Precisão lírica' },
+  { key: 'frieza',      label: 'Frieza',      emoji: '🧊', color: '#1ABC9C', desc: 'Controle sob pressão' },
+  { key: 'inteligencia',label: 'Inteligência',emoji: '🧠', color: PURPLE,    desc: 'Profundidade e refs' },
+  { key: 'presenca',    label: 'Presença',    emoji: '🎤', color: '#E74C3C', desc: 'Impacto na plateia' },
+  { key: 'punchline',   label: 'Punchline',   emoji: '💥', color: GOLD,      desc: 'Força das frases' },
 ];
 
 export default function CareerScreen() {
-  const career = useCareerStore();
+  const career    = useCareerStore();
   const character = useCharacterStore(s => s.character);
 
-  const xpNeeded = xpForLevel(career.level);
-  const xpPct    = Math.min(100, (career.xp / xpNeeded) * 100);
+  const rpNeeded  = rpForLevel(career.level);
+  const rpPct     = Math.min(100, (career.rp / rpNeeded) * 100);
   const hasPoints = career.attributePoints > 0;
+  const accent    = character?.archetypeColor ?? GOLD;
 
   return (
-    <View style={s.bg}>
+    <ImageBackground source={BG} style={s.root} resizeMode="cover">
+      <View style={s.overlay} />
+
+      {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.back}>
-          <Ionicons name="arrow-back" size={18} color={Colors.white} />
+          <Ionicons name="arrow-back" size={20} color={GOLD} />
         </TouchableOpacity>
-        <Text style={s.title}>CARREIRA</Text>
-        <View style={{ width: 26 }} />
+        <View style={s.headerCenter}>
+          <Text style={s.title}>CARREIRA</Text>
+          <Text style={s.sub}>UNDERGROUND · SÃO PAULO</Text>
+        </View>
+        <View style={{ width: 36 }} />
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* MC card */}
-        <View style={s.mcCard}>
-          <View style={s.mcRow}>
-            <Text style={s.mcName}>{character?.battleName ?? 'SEU MC'}</Text>
-            <View style={[s.archBadge, { borderColor: character?.archetypeColor ?? Colors.primary }]}>
-              <Text style={[s.archTxt, { color: character?.archetypeColor ?? Colors.primary }]}>
-                {character?.archetypeIcon} {character?.archetype}
+        {/* Hero — personagem + nome */}
+        <View style={s.hero}>
+          <View style={s.charWrap}>
+            <View style={[s.charGlow, { backgroundColor: accent + '30' }]} />
+            <CharacterLayered look={character?.look ?? DEFAULT_LOOK} size={120} />
+          </View>
+          <View style={s.heroInfo}>
+            <Text style={s.heroName}>{character?.battleName ?? 'SEU MC'}</Text>
+            <View style={[s.archBadge, { borderColor: accent }]}>
+              <Text style={[s.archTxt, { color: accent }]}>
+                {character?.archetypeIcon} {character?.archetype ?? 'MC INICIANTE'}
               </Text>
             </View>
-          </View>
-
-          <View style={s.statsGrid}>
-            {[
-              ['NÍVEL',    `${career.level}`,     Colors.primary],
-              ['HYPE',     `${career.hype}`,       Colors.orange],
-              ['TROFÉUS',  `${career.trophies.length}`, Colors.gold],
-              ['AMIGOS',   `${Object.values(career.friendships).filter(v => v >= 50).length}`, Colors.neon],
-              ['PARCEIROS',`${career.partners.length}`, Colors.purple],
-              ['FOLHINHAS',`${career.leaves}`,     Colors.primary],
-            ].map(([lbl, val, color]) => (
-              <View key={lbl as string} style={s.statBox}>
-                <Text style={[s.statVal, { color: color as string }]}>{val}</Text>
-                <Text style={s.statLbl}>{lbl}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* XP bar */}
-          <View style={s.xpSection}>
-            <View style={s.xpRow}>
-              <Text style={s.xpLbl}>XP</Text>
-              <Text style={s.xpVal}>{career.xp} / {xpNeeded}</Text>
-            </View>
-            <View style={s.xpBg}>
-              <View style={[s.xpFill, { width: `${xpPct}%` as any }]} />
+            {/* HYPE */}
+            <View style={s.hypeRow}>
+              <Text style={s.hypeFireIcon}>🔥</Text>
+              <Text style={s.hypeVal}>{career.hype}</Text>
+              <Text style={s.hypeLbl}>{career.hype === 1 ? 'DIA' : 'DIAS'} DE HYPE</Text>
             </View>
           </View>
         </View>
 
-        {/* Attribute points */}
+        {/* RP / Nível */}
+        <View style={s.rpCard}>
+          <View style={s.rpTop}>
+            <View style={s.lvlBadge}>
+              <Text style={s.lvlNum}>{career.level}</Text>
+              <Text style={s.lvlLbl}>NÍVEL</Text>
+            </View>
+            <View style={s.rpInfo}>
+              <View style={s.rpRow}>
+                <Text style={s.rpLbl}>PONTOS DE RIMA</Text>
+                <Text style={s.rpVal}>{career.rp} <Text style={s.rpOf}>/ {rpNeeded} RP</Text></Text>
+              </View>
+              <View style={s.rpBg}>
+                <View style={[s.rpFill, { width: `${rpPct}%` as any, backgroundColor: accent }]} />
+              </View>
+              <Text style={s.rpHint}>+{rpNeeded - career.rp} RP para nível {career.level + 1}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Stats grid */}
+        <View style={s.statsGrid}>
+          {([
+            ['🏆', 'TROFÉUS',   `${career.trophies.length}`,                                           GOLD],
+            ['📄', 'FOLHINHAS', `${career.leaves}`,                                                     PURPLE],
+            ['🤝', 'AMIGOS',    `${Object.values(career.friendships).filter(v => v >= 50).length}`,     Colors.neon],
+            ['🎤', 'PARCEIROS', `${career.partners.length}`,                                            '#FF5500'],
+          ] as [string, string, string, string][]).map(([icon, lbl, val, color]) => (
+            <View key={lbl} style={s.statBox}>
+              <Text style={s.statIcon}>{icon}</Text>
+              <Text style={[s.statVal, { color }]}>{val}</Text>
+              <Text style={s.statLbl}>{lbl}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Attribute points banner */}
         {hasPoints && (
           <View style={s.pointsBanner}>
             <Text style={s.pointsBannerTxt}>
-              ⚡ {career.attributePoints} ponto{career.attributePoints > 1 ? 's' : ''} de atributo disponível{career.attributePoints > 1 ? 'is' : ''}!
+              ⚡ {career.attributePoints} PONTO{career.attributePoints > 1 ? 'S' : ''} DE ATRIBUTO DISPONÍVEL{career.attributePoints > 1 ? 'IS' : ''}
             </Text>
           </View>
         )}
 
-        {/* Attributes */}
-        <Text style={s.sectionLabel}>ATRIBUTOS</Text>
+        {/* Atributos */}
+        <Text style={s.sectionLabel}>// ATRIBUTOS</Text>
         <View style={s.attrList}>
           {ATTRS.map(attr => {
-            const val    = career.attributes[attr.key];
-            const pct    = (val / 20) * 100; // max 20
+            const val = career.attributes[attr.key];
+            const pct = (val / 20) * 100;
             return (
               <View key={attr.key} style={s.attrRow}>
                 <Text style={s.attrEmoji}>{attr.emoji}</Text>
@@ -122,10 +154,10 @@ export default function CareerScreen() {
           })}
         </View>
 
-        {/* Partners */}
+        {/* Parceiros */}
         {career.partners.length > 0 && (
           <>
-            <Text style={s.sectionLabel}>PARCEIROS</Text>
+            <Text style={s.sectionLabel}>// PARCEIROS</Text>
             <View style={s.partnerList}>
               {career.partners.map(id => (
                 <View key={id} style={s.partnerChip}>
@@ -138,69 +170,115 @@ export default function CareerScreen() {
 
         <View style={{ height: 48 }} />
       </ScrollView>
-    </View>
+    </ImageBackground>
   );
 }
 
 const s = StyleSheet.create({
-  bg: { flex: 1, backgroundColor: Colors.bg },
+  root:    { flex: 1, backgroundColor: '#060606' },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.62)' },
 
+  // Header
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingTop: 52, paddingBottom: 14,
-    borderBottomWidth: 1, borderBottomColor: Colors.border,
+    flexDirection: 'row', alignItems: 'center',
+    paddingTop: 52, paddingBottom: 14, paddingHorizontal: 16,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,170,0,0.15)',
   },
-  back:  { padding: 4 },
-  title: { fontFamily: GRAFFITI, color: Colors.white, fontSize: 26, letterSpacing: 6 },
+  back: { padding: 6 },
+  headerCenter: { flex: 1, alignItems: 'center' },
+  title: { fontFamily: GRAFFITI, color: GOLD, fontSize: 26, letterSpacing: 6 },
+  sub:   { fontFamily: GRAFFITI, color: '#555', fontSize: 11, letterSpacing: 3, marginTop: -2 },
 
-  scroll: { padding: 20, gap: 16 },
+  scroll: { padding: 16, gap: 16 },
 
-  mcCard: {
-    backgroundColor: Colors.card, borderRadius: 6,
-    borderWidth: 1.5, borderColor: Colors.primary + '30',
-    padding: 18, gap: 14,
+  // Hero
+  hero: {
+    flexDirection: 'row', alignItems: 'center', gap: 16,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 10, padding: 16,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
   },
-  mcRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  mcName:   { fontFamily: GRAFFITI, color: Colors.white, fontSize: 28, letterSpacing: 3 },
-  archBadge:{ borderWidth: 1.5, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 4 },
-  archTxt:  { fontFamily: GRAFFITI, fontSize: 16, letterSpacing: 2 },
+  charWrap: { alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  charGlow: {
+    position: 'absolute', width: 110, height: 110, borderRadius: 55,
+    ...(Platform.OS === 'web' ? ({ filter: 'blur(20px)' } as any) : {}),
+  },
+  heroInfo: { flex: 1, gap: 6 },
+  heroName: { fontFamily: GRAFFITI, color: '#FFF', fontSize: 24, letterSpacing: 2 },
+  archBadge:{ alignSelf: 'flex-start', borderWidth: 1.5, borderRadius: 4, paddingHorizontal: 8, paddingVertical: 3 },
+  archTxt:  { fontFamily: GRAFFITI, fontSize: 13, letterSpacing: 1 },
+  hypeRow:  { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  hypeFireIcon: { fontSize: 14 },
+  hypeVal:  { fontFamily: GRAFFITI, color: '#FF6600', fontSize: 20, lineHeight: 22 },
+  hypeLbl:  { fontFamily: GRAFFITI, color: '#FF6600', fontSize: 10, letterSpacing: 2, opacity: 0.8 },
 
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  statBox:   { flex: 1, minWidth: 80, backgroundColor: Colors.surface, borderRadius: 4, padding: 10, alignItems: 'center', gap: 2 },
-  statVal:   { fontFamily: GRAFFITI, fontSize: 26 },
-  statLbl:   { fontFamily: GRAFFITI, color: Colors.muted, fontSize: 13, letterSpacing: 2 },
+  // RP Card
+  rpCard: {
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 10, padding: 16,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+  },
+  rpTop:   { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  lvlBadge:{
+    width: 64, height: 64, borderRadius: 32,
+    backgroundColor: 'rgba(255,170,0,0.12)',
+    borderWidth: 2, borderColor: GOLD + '60',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  lvlNum:  { fontFamily: GRAFFITI, color: GOLD, fontSize: 28, lineHeight: 30 },
+  lvlLbl:  { fontFamily: GRAFFITI, color: GOLD + '80', fontSize: 10, letterSpacing: 2 },
+  rpInfo:  { flex: 1, gap: 6 },
+  rpRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  rpLbl:   { fontFamily: GRAFFITI, color: '#555', fontSize: 11, letterSpacing: 2 },
+  rpVal:   { fontFamily: GRAFFITI, color: '#FFF', fontSize: 18 },
+  rpOf:    { fontSize: 13, color: '#555' },
+  rpBg:    { height: 7, backgroundColor: '#1A1A1A', borderRadius: 4 },
+  rpFill:  { height: 7, borderRadius: 4 },
+  rpHint:  { color: '#444', fontSize: 10, fontFamily: GRAFFITI, letterSpacing: 1 },
 
-  xpSection: { gap: 6 },
-  xpRow:     { flexDirection: 'row', justifyContent: 'space-between' },
-  xpLbl:     { fontFamily: GRAFFITI, color: Colors.muted, fontSize: 16, letterSpacing: 3 },
-  xpVal:     { fontFamily: GRAFFITI, color: Colors.primary, fontSize: 16 },
-  xpBg:      { height: 6, backgroundColor: Colors.dim, borderRadius: 3 },
-  xpFill:    { height: 6, backgroundColor: Colors.primary, borderRadius: 3 },
+  // Stats grid
+  statsGrid: { flexDirection: 'row', gap: 8 },
+  statBox: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+    padding: 10, alignItems: 'center', gap: 2,
+  },
+  statIcon: { fontSize: 18 },
+  statVal:  { fontFamily: GRAFFITI, fontSize: 22 },
+  statLbl:  { fontFamily: GRAFFITI, color: '#444', fontSize: 9, letterSpacing: 1 },
 
+  // Points banner
   pointsBanner: {
-    backgroundColor: Colors.orange + '18', borderRadius: 4,
-    borderWidth: 1, borderColor: Colors.orange,
+    backgroundColor: '#FF5500' + '18', borderRadius: 6,
+    borderWidth: 1, borderColor: '#FF5500',
     padding: 12, alignItems: 'center',
   },
-  pointsBannerTxt: { fontFamily: GRAFFITI, color: Colors.orange, fontSize: 18, letterSpacing: 2 },
+  pointsBannerTxt: { fontFamily: GRAFFITI, color: '#FF5500', fontSize: 16, letterSpacing: 2 },
 
-  sectionLabel: { fontFamily: GRAFFITI, color: Colors.primary, fontSize: 18, letterSpacing: 5 },
+  sectionLabel: { fontFamily: GRAFFITI, color: '#333', fontSize: 13, letterSpacing: 5 },
 
-  attrList: { gap: 10 },
-  attrRow:  { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  attrEmoji:{ fontSize: 24, width: 30, textAlign: 'center' },
+  // Atributos
+  attrList: { gap: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 10, padding: 14 },
+  attrRow:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  attrEmoji:{ fontSize: 22, width: 28, textAlign: 'center' },
   attrInfo: { flex: 1, gap: 4 },
   attrNameRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  attrName: { fontFamily: GRAFFITI, color: Colors.white, fontSize: 18, letterSpacing: 1 },
-  attrDesc: { color: Colors.muted, fontSize: 10, flex: 1 },
+  attrName: { fontFamily: GRAFFITI, color: '#DDD', fontSize: 16, letterSpacing: 1 },
+  attrDesc: { color: '#444', fontSize: 10, flex: 1 },
   attrBarRow:{ flexDirection: 'row', alignItems: 'center', gap: 8 },
-  attrBg:   { flex: 1, height: 6, backgroundColor: Colors.dim, borderRadius: 3 },
-  attrFill: { height: 6, borderRadius: 3 },
-  attrVal:  { fontFamily: GRAFFITI, fontSize: 20, width: 28, textAlign: 'right' },
-  addBtn:   { width: 32, height: 32, borderRadius: 16, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  addBtnTxt:{ fontSize: 20, fontWeight: '900', lineHeight: 24 },
+  attrBg:   { flex: 1, height: 5, backgroundColor: '#1A1A1A', borderRadius: 3 },
+  attrFill: { height: 5, borderRadius: 3 },
+  attrVal:  { fontFamily: GRAFFITI, fontSize: 18, width: 26, textAlign: 'right' },
+  addBtn:   { width: 30, height: 30, borderRadius: 15, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  addBtnTxt:{ fontSize: 18, fontWeight: '900', lineHeight: 22 },
 
+  // Partners
   partnerList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  partnerChip: { backgroundColor: Colors.neon + '15', borderRadius: 4, borderWidth: 1, borderColor: Colors.neon, paddingHorizontal: 12, paddingVertical: 6 },
+  partnerChip: {
+    backgroundColor: Colors.neon + '12', borderRadius: 4,
+    borderWidth: 1, borderColor: Colors.neon,
+    paddingHorizontal: 12, paddingVertical: 6,
+  },
   partnerChipTxt: { color: Colors.neon, fontSize: 12, fontWeight: '700' },
 });

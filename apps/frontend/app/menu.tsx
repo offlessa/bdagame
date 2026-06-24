@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuthStore } from '../src/store/authStore';
 import { useCharacterStore, DEFAULT_LOOK } from '../src/store/characterStore';
-import { useCareerStore, xpForLevel } from '../src/store/careerStore';
+import { useCareerStore, rpForLevel } from '../src/store/careerStore';
 import { Colors } from '../src/theme/colors';
 import { GRAFFITI } from '../src/theme/fonts';
 import CharacterLayered from '../src/components/CharacterLayered';
@@ -30,8 +30,8 @@ export default function MenuScreen() {
   }
 
   const accent    = character?.archetypeColor ?? GOLD;
-  const xpNeeded = xpForLevel(career.level);
-  const xpPct    = Math.min(100, (career.xp / xpNeeded) * 100);
+  const rpNeeded = rpForLevel(career.level);
+  const rpPct    = Math.min(100, (career.rp / rpNeeded) * 100);
   const mcTitle  = character?.archetype ?? 'MC INICIANTE';
 
   return (
@@ -41,7 +41,7 @@ export default function MenuScreen() {
       {/* ══════════ TOP HUD ══════════ */}
       <View style={s.topHud}>
 
-        {/* Avatar + nome + XP */}
+        {/* Avatar + nome + RP */}
         <View style={s.playerBlock}>
           <View style={[s.avatarCircle, { borderColor: accent }]}>
             <Text style={s.avatarIcon}>{character?.archetypeIcon ?? '⚡'}</Text>
@@ -53,9 +53,9 @@ export default function MenuScreen() {
             <Text style={s.levelTxt}>LV {career.level}</Text>
             <View style={s.xpRow}>
               <View style={s.xpBg}>
-                <View style={[s.xpFill, { width: `${xpPct}%` as any, backgroundColor: accent }]} />
+                <View style={[s.xpFill, { width: `${rpPct}%` as any, backgroundColor: accent }]} />
               </View>
-              <Text style={s.xpTxt}>{career.xp} / {xpNeeded} XP</Text>
+              <Text style={s.xpTxt}>{career.rp} / {rpNeeded} RP</Text>
             </View>
           </View>
         </View>
@@ -131,7 +131,7 @@ export default function MenuScreen() {
           <Text style={s.battleNextLbl}>Próxima batalha</Text>
           <Text style={s.battleNextName}>BECO DA ZONA SUL</Text>
           <View style={s.rewardPill}>
-            <Text style={s.rewardTxt}>⭐  RECOMPENSA: +50 XP</Text>
+            <Text style={s.rewardTxt}>⭐  RECOMPENSA: +50 RP</Text>
           </View>
         </View>
 
