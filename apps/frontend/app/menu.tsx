@@ -1,14 +1,13 @@
 import React from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  Alert, ImageBackground, Image, Platform,
+  Alert, ImageBackground, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuthStore } from '../src/store/authStore';
 import { useCharacterStore, DEFAULT_LOOK } from '../src/store/characterStore';
 import { useCareerStore, rpForLevel } from '../src/store/careerStore';
-import { Colors } from '../src/theme/colors';
 import { GRAFFITI } from '../src/theme/fonts';
 import CharacterLayered from '../src/components/CharacterLayered';
 
@@ -103,7 +102,7 @@ export default function MenuScreen() {
         <View style={s.charWrap} pointerEvents="none">
           <View style={s.glowOuter} />
           <View style={s.glowInner} />
-          <CharacterLayered look={character?.look ?? DEFAULT_LOOK} size={300} />
+          <CharacterLayered look={character?.look ?? DEFAULT_LOOK} size={220} />
           <View style={s.charShadow} />
         </View>
 
@@ -112,7 +111,7 @@ export default function MenuScreen() {
       {/* ══════════ BATALHAR CARD ══════════ */}
       <TouchableOpacity
         style={s.battleCard}
-        onPress={() => router.push('/world')}
+        onPress={() => router.push('/rap-slash')}
         activeOpacity={0.85}
       >
         {/* Textura / gradiente */}
@@ -131,7 +130,7 @@ export default function MenuScreen() {
           <Text style={s.battleNextLbl}>Próxima batalha</Text>
           <Text style={s.battleNextName}>BECO DA ZONA SUL</Text>
           <View style={s.rewardPill}>
-            <Text style={s.rewardTxt}>⭐  RECOMPENSA: +50 RP</Text>
+            <Text style={s.rewardTxt}>✂️  RAP SLASH · +50 RP</Text>
           </View>
         </View>
 

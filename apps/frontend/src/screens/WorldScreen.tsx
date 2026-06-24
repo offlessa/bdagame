@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  Modal, ImageBackground, Image, Platform,
+  Modal, ImageBackground, Platform,
 } from 'react-native';
 import Svg, { Line, Circle, Rect } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCareerStore, rpForLevel } from '../store/careerStore';
 import { useCharacterStore, DEFAULT_LOOK } from '../store/characterStore';
-import { useBattleStore } from '../store/battleStore';
 import { getNPCsByLocation } from '../data/npcs';
-import { randomBeat } from '../data/beats';
 import { Colors } from '../theme/colors';
 import { GRAFFITI } from '../theme/fonts';
 import { NPC } from '../types/game';
@@ -82,10 +80,9 @@ const ic = StyleSheet.create({
 
 // ── SVG Map Canvas ────────────────────────────────────────────────────────────
 
-function MapCanvas({ npcs, defeatedIds, friendships, onPress }: {
+function MapCanvas({ npcs, defeatedIds, onPress }: {
   npcs: NPC[];
   defeatedIds: string[];
-  friendships: Record<string, number>;
   onPress: (npc: NPC) => void;
 }) {
   function pos(id: string) {
@@ -227,7 +224,6 @@ function MapCanvas({ npcs, defeatedIds, friendships, onPress }: {
 
 function InteractModal({ npc, visible, onClose }: { npc: NPC | null; visible: boolean; onClose: () => void }) {
   const { friendships, partners, addPartner } = useCareerStore();
-  const { startBattle } = useBattleStore();
 
   if (!npc) return null;
 
@@ -237,9 +233,10 @@ function InteractModal({ npc, visible, onClose }: { npc: NPC | null; visible: bo
   const canPartner = friendship >= 80 && !isPartner;
 
   function battle() {
-    startBattle(npc, randomBeat());
+    const id = npc?.id;
+    if (!id) return;
     onClose();
-    router.push('/battle');
+    router.push({ pathname: '/rap-slash', params: { npcId: id } });
   }
 
   return (
@@ -377,7 +374,6 @@ export default function WorldScreen() {
         <MapCanvas
           npcs={npcs}
           defeatedIds={career.defeatedNpcIds}
-          friendships={career.friendships}
           onPress={npc => { setSelectedNPC(npc); setModalVisible(true); }}
         />
       </ScrollView>

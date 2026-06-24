@@ -2,15 +2,36 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface CharacterLook {
-  olhos: string;   // '1'–'5'
-  nariz: string;   // '1'–'5'
-  boca: string;    // '1'–'5'
+  // skin (reserved for future tones)
+  pele: string;
+  // face
+  cabelo: string;
+  sobrancelha: string;
+  olhos: string;
+  nariz: string;
+  boca: string;
+  // outfit
+  roupa_top: string;
+  roupa_calca: string;
+  calcado: string;
+  // acessórios
+  mic: string;
+  // cores
+  cor_cabelo: string;
 }
 
 export const DEFAULT_LOOK: CharacterLook = {
+  pele: '1',
+  cabelo: '1',
+  sobrancelha: '1',
   olhos: '1',
   nariz: '1',
   boca: '1',
+  roupa_top: '1',
+  roupa_calca: '1',
+  calcado: '1',
+  mic: '1',
+  cor_cabelo: '',
 };
 
 export interface Character {

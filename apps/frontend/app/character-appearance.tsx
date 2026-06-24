@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView,
-  StyleSheet, ImageBackground, Platform,
+  StyleSheet, ImageBackground, Platform, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -10,36 +10,89 @@ import { useCharacterStore, CharacterLook, DEFAULT_LOOK } from '../src/store/cha
 import { GRAFFITI } from '../src/theme/fonts';
 import CharacterLayered from '../src/components/CharacterLayered';
 
-const GOLD   = '#FFAA00';
-const PURPLE = '#9D00FF';
+const GOLD = '#FFAA00';
 const BG = Platform.OS === 'web' ? { uri: '/bg-wall.png' } : require('../public/bg-wall.png');
 
-const OPTIONS_5 = ['1', '2', '3', '4', '5'];
-type Category = 'olhos' | 'nariz' | 'boca';
+type Category = keyof CharacterLook;
 
-const CATEGORIES: { id: Category; label: string; emoji: string; desc: string }[] = [
-  { id: 'olhos', label: 'OLHOS',  emoji: '👁',  desc: 'Expressão' },
-  { id: 'nariz', label: 'NARIZ',  emoji: '👃',  desc: 'Forma' },
-  { id: 'boca',  label: 'BOCA',   emoji: '🎤',  desc: 'Estilo' },
+interface CatDef {
+  id: Category;
+  label: string;
+  emoji: string;
+  desc: string;
+  type?: 'hue-slider';
+  options?: string[];
+  icons?: string[];
+}
+
+const CATEGORIES: CatDef[] = [
+  {
+    id: 'cabelo', label: 'CABELO', emoji: '💈', desc: 'Estilo',
+    options: ['0', '1'],
+    icons: ['🚫', '💇'],
+  },
+  {
+    id: 'cor_cabelo', label: 'COR CABELO', emoji: '🎨', desc: 'Tom',
+    type: 'hue-slider',
+  },
+  {
+    id: 'olhos', label: 'OLHOS', emoji: '👁', desc: 'Expressão',
+    options: ['1', '2', '3', '4', '5'],
+    icons: ['😐', '😌', '😤', '😎', '😈'],
+  },
+  {
+    id: 'sobrancelha', label: 'SOBRANCELHA', emoji: '🤨', desc: 'Atitude',
+    options: ['1'],
+    icons: ['😤'],
+  },
+  {
+    id: 'nariz', label: 'NARIZ', emoji: '👃', desc: 'Forma',
+    options: ['1', '2', '3', '4', '5'],
+    icons: ['🔹', '🔸', '◾', '▫️', '🔺'],
+  },
+  {
+    id: 'boca', label: 'BOCA', emoji: '🎤', desc: 'Flow',
+    options: ['1', '2', '3', '4', '5'],
+    icons: ['😶', '😏', '😬', '😤', '😆'],
+  },
+  {
+    id: 'roupa_top', label: 'JAQUETA', emoji: '🧥', desc: 'Drip',
+    options: ['0', '1'],
+    icons: ['🚫', '🖤'],
+  },
+  {
+    id: 'roupa_calca', label: 'CALÇA', emoji: '👖', desc: 'Estilo',
+    options: ['0', '1'],
+    icons: ['🚫', '⛓'],
+  },
+  {
+    id: 'calcado', label: 'TÊNIS', emoji: '👟', desc: 'Swag',
+    options: ['0', '1'],
+    icons: ['🚫', '👟'],
+  },
+  {
+    id: 'mic', label: 'MICROFONE', emoji: '🎤', desc: 'Flow',
+    options: ['1', '2'],
+    icons: ['🎤', '🏆'],
+  },
 ];
-
-const OPTION_ICONS: Record<Category, string[]> = {
-  olhos: ['😐', '😌', '😤', '😎', '😈'],
-  nariz: ['🔹', '🔸', '◾', '▫️', '🔺'],
-  boca:  ['😶', '😏', '😬', '😤', '😆'],
-};
 
 export default function CharacterAppearanceScreen() {
   const { userId } = useAuthStore();
   const { character, updateLook } = useCharacterStore();
 
-  const initialLook: CharacterLook =
-    character?.look && 'olhos' in character.look
-      ? (character.look as CharacterLook)
-      : DEFAULT_LOOK;
+  // Merge saved look with DEFAULT_LOOK so new fields always have a value
+  const initialLook: CharacterLook = {
+    ...DEFAULT_LOOK,
+    ...(character?.look ?? {}),
+  };
 
-  const [look, setLook] = useState<CharacterLook>(initialLook);
-  const [category, setCategory] = useState<Category>('olhos');
+  const savedLook = useRef<CharacterLook>(initialLook);
+
+  const [look, setLook]         = useState<CharacterLook>(initialLook);
+  const [category, setCategory] = useState<Category>('cabelo');
+
+  const activeCat = CATEGORIES.find(c => c.id === category)!;
 
   function select(value: string) {
     setLook(prev => ({ ...prev, [category]: value }));
@@ -50,8 +103,27 @@ export default function CharacterAppearanceScreen() {
     router.back();
   }
 
+  function handleBack() {
+    const hasChanges = JSON.stringify(look) !== JSON.stringify(savedLook.current);
+    if (!hasChanges) { router.back(); return; }
+    if (Platform.OS === 'web') {
+      if (window.confirm('Descartar alterações?\n\nVocê tem mudanças não salvas. Deseja sair sem salvar?')) {
+        router.back();
+      }
+    } else {
+      Alert.alert(
+        'Descartar alterações?',
+        'Você tem mudanças não salvas. Deseja sair sem salvar?',
+        [
+          { text: 'Continuar editando', style: 'cancel' },
+          { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
+        ],
+      );
+    }
+  }
+
   const accent       = character?.archetypeColor ?? GOLD;
-  const currentValue = look[category];
+  const currentValue = look[category] as string;
 
   return (
     <ImageBackground source={BG} style={s.root} resizeMode="cover">
@@ -59,7 +131,7 @@ export default function CharacterAppearanceScreen() {
 
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.back}>
+        <TouchableOpacity onPress={handleBack} style={s.back}>
           <Ionicons name="arrow-back" size={20} color={GOLD} />
         </TouchableOpacity>
         <View style={s.headerCenter}>
@@ -73,22 +145,17 @@ export default function CharacterAppearanceScreen() {
 
         {/* Preview */}
         <View style={[s.previewCard, { borderColor: accent + '40' }]}>
-          {/* Glow */}
           <View style={[s.glow, { backgroundColor: accent }]} />
           <View style={[s.glowInner, { backgroundColor: accent }]} />
-
-          {/* Decorações */}
           <Text style={[s.deco, { top: 12, left: 18, color: accent + '60' }]}>✦</Text>
           <Text style={[s.deco, { top: 12, right: 18, color: accent + '60' }]}>✦</Text>
 
-          {/* Badge MC */}
           <View style={[s.mcBadge, { backgroundColor: accent }]}>
             <Text style={s.mcBadgeTxt}>👑 SEU MC</Text>
           </View>
 
-          <CharacterLayered look={look} size={300} />
+          <CharacterLayered look={look} size={180} />
 
-          {/* Nome + arquétipo */}
           <View style={s.nameStrip}>
             <Text style={s.mcName}>{character?.battleName ?? 'SEU MC'}</Text>
             <View style={[s.archBadge, { borderColor: accent }]}>
@@ -97,7 +164,6 @@ export default function CharacterAppearanceScreen() {
               </Text>
             </View>
           </View>
-
           <View style={[s.accentBar, { backgroundColor: accent }]} />
         </View>
 
@@ -108,60 +174,66 @@ export default function CharacterAppearanceScreen() {
           <View style={s.divLine} />
         </View>
 
-        {/* Tabs de categoria */}
-        <View style={s.tabs}>
+        {/* Category tabs — horizontal scroll */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={s.tabsRow}
+          style={s.tabsScroll}
+        >
           {CATEGORIES.map(cat => {
             const active = category === cat.id;
             return (
               <TouchableOpacity
                 key={cat.id}
-                style={[
-                  s.tab,
-                  active && { backgroundColor: accent, borderColor: accent },
-                ]}
+                style={[s.tab, active && { backgroundColor: accent, borderColor: accent }]}
                 onPress={() => setCategory(cat.id)}
                 activeOpacity={0.75}
               >
                 <Text style={s.tabEmoji}>{cat.emoji}</Text>
                 <Text style={[s.tabLabel, active && { color: '#0A0A0A' }]}>{cat.label}</Text>
-                <Text style={[s.tabDesc, active && { color: '#0A0A0A80' }]}>{cat.desc}</Text>
+                <Text style={[s.tabDesc,  active && { color: '#0A0A0A80' }]}>{cat.desc}</Text>
               </TouchableOpacity>
             );
           })}
-        </View>
+        </ScrollView>
 
-        {/* Grid de opções */}
-        <View style={s.grid}>
-          {OPTIONS_5.map((id, i) => {
-            const sel = id === currentValue;
-            return (
-              <TouchableOpacity
-                key={id}
-                style={[
-                  s.optCard,
-                  { borderColor: sel ? accent : 'rgba(255,255,255,0.06)' },
-                  sel && { backgroundColor: accent + '18' },
-                ]}
-                onPress={() => select(id)}
-                activeOpacity={0.7}
-              >
-                {sel && (
-                  <View style={[s.selBadge, { backgroundColor: accent }]}>
-                    <Ionicons name="checkmark" size={11} color="#000" />
-                  </View>
-                )}
-                <Text style={s.optEmoji}>{OPTION_ICONS[category][i]}</Text>
-                <Text style={[s.optNum, { color: sel ? accent : '#333' }]}>{id}</Text>
-                <Text style={[s.optLbl, sel && { color: accent }]}>OPÇÃO {id}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {/* Options — grid or hue slider depending on category type */}
+        {activeCat.type === 'hue-slider' ? (
+          <HueSlider value={currentValue} accent={accent} onChange={select} />
+        ) : (
+          <View style={s.grid}>
+            {(activeCat.options ?? []).map((id, i) => {
+              const sel = id === currentValue;
+              return (
+                <TouchableOpacity
+                  key={id}
+                  style={[
+                    s.optCard,
+                    { borderColor: sel ? accent : 'rgba(255,255,255,0.06)' },
+                    sel && { backgroundColor: accent + '18' },
+                  ]}
+                  onPress={() => select(id)}
+                  activeOpacity={0.7}
+                >
+                  {sel && (
+                    <View style={[s.selBadge, { backgroundColor: accent }]}>
+                      <Ionicons name="checkmark" size={11} color="#000" />
+                    </View>
+                  )}
+                  <Text style={s.optEmoji}>{(activeCat.icons ?? [])[i]}</Text>
+                  <Text style={[s.optNum, { color: sel ? accent : '#333' }]}>{id}</Text>
+                  <Text style={[s.optLbl, sel && { color: accent }]}>OPÇÃO {id}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
 
         <View style={{ height: 16 }} />
       </ScrollView>
 
-      {/* Botão SALVAR fixo na base */}
+      {/* Save button fixed at bottom */}
       <TouchableOpacity style={[s.saveBar, { backgroundColor: accent }]} onPress={handleSave} activeOpacity={0.85}>
         <View style={s.saveBarShine} />
         <Ionicons name="checkmark-circle" size={22} color="#0A0A0A" />
@@ -171,11 +243,60 @@ export default function CharacterAppearanceScreen() {
   );
 }
 
+/* ── Hue Slider ── */
+const HAIR_PRESETS = [
+  { value: '',      bg: '#111111', label: 'PRETO'    },
+  { value: 'white', bg: '#E8E8E8', label: 'BRANCO'   },
+  { value: '0',     bg: '#FF1A00', label: 'VERMELHO' },
+  { value: '38',    bg: '#FF6600', label: 'LARANJA'  },
+  { value: 'yellow', bg: '#FFD700', label: 'AMARELO'  },
+  { value: '120',   bg: '#00CC44', label: 'VERDE'    },
+  { value: '210',   bg: '#1E90FF', label: 'AZUL'     },
+  { value: '270',   bg: '#9900FF', label: 'ROXO'     },
+  { value: '320',   bg: '#FF1493', label: 'ROSA'     },
+];
+
+function HueSlider({ value, accent, onChange }: {
+  value: string; accent: string; onChange: (v: string) => void;
+}) {
+  return (
+    <View style={hs.grid}>
+      {HAIR_PRESETS.map(p => {
+        const sel = value === p.value;
+        return (
+          <TouchableOpacity
+            key={p.label}
+            style={hs.btnWrap}
+            onPress={() => onChange(p.value)}
+            activeOpacity={0.75}
+          >
+            <View style={[
+              hs.circle,
+              { backgroundColor: p.bg },
+              sel && { borderColor: accent, borderWidth: 3 },
+            ]}>
+              {sel && <View style={hs.checkDot} />}
+            </View>
+            <Text style={[hs.btnLabel, sel && { color: accent }]}>{p.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+const hs = StyleSheet.create({
+  grid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center', width: '100%', paddingHorizontal: 4 },
+  btnWrap:  { alignItems: 'center', gap: 5, width: 56 },
+  circle:   { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  checkDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.9)' },
+  btnLabel: { color: '#555', fontSize: 8, fontFamily: GRAFFITI, letterSpacing: 0.5, textAlign: 'center' },
+});
+
 const s = StyleSheet.create({
   root:    { flex: 1, backgroundColor: '#060606' },
   overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.60)' },
 
-  // Header
   header: {
     flexDirection: 'row', alignItems: 'center',
     paddingTop: 52, paddingBottom: 14, paddingHorizontal: 16,
@@ -189,13 +310,10 @@ const s = StyleSheet.create({
 
   scroll: { alignItems: 'center', paddingTop: 20, paddingHorizontal: 16, paddingBottom: 20 },
 
-  // Preview card
   previewCard: {
-    width: '100%', borderRadius: 14,
-    borderWidth: 1.5,
+    width: '100%', borderRadius: 14, borderWidth: 1.5,
     backgroundColor: 'rgba(10,10,10,0.75)',
-    alignItems: 'center',
-    paddingTop: 14, paddingBottom: 0,
+    alignItems: 'center', paddingTop: 14, paddingBottom: 0,
     overflow: 'hidden', position: 'relative', marginBottom: 6,
   },
   glow: {
@@ -214,33 +332,31 @@ const s = StyleSheet.create({
   nameStrip: {
     width: '100%', alignItems: 'center',
     paddingTop: 12, paddingBottom: 16,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.4)', gap: 6,
   },
   mcName:   { fontFamily: GRAFFITI, color: '#FFF', fontSize: 24, letterSpacing: 3 },
   archBadge:{ borderWidth: 1.5, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 3 },
   archTxt:  { fontFamily: GRAFFITI, fontSize: 14, letterSpacing: 2 },
   accentBar:{ width: '80%', height: 3, borderRadius: 2 },
 
-  // Divider
-  divider: { flexDirection: 'row', alignItems: 'center', width: '100%', marginVertical: 18 },
+  divider: { flexDirection: 'row', alignItems: 'center', width: '100%', marginVertical: 16 },
   divLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.08)' },
   divTxt:  { fontFamily: GRAFFITI, fontSize: 13, letterSpacing: 5, marginHorizontal: 12 },
 
-  // Tabs
-  tabs: { flexDirection: 'row', gap: 8, marginBottom: 18, width: '100%' },
+  tabsScroll: { width: '100%', marginBottom: 16 },
+  tabsRow:    { flexDirection: 'row', gap: 8, paddingHorizontal: 2 },
   tab: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 10, borderRadius: 8,
-    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    gap: 2,
+    alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 10, paddingHorizontal: 14,
+    borderRadius: 8, borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(0,0,0,0.5)', gap: 2,
+    minWidth: 72,
   },
-  tabEmoji: { fontSize: 20 },
-  tabLabel: { fontFamily: GRAFFITI, color: '#888', fontSize: 14, letterSpacing: 2 },
+  tabEmoji: { fontSize: 18 },
+  tabLabel: { fontFamily: GRAFFITI, color: '#888', fontSize: 11, letterSpacing: 1 },
   tabDesc:  { color: '#444', fontSize: 9, letterSpacing: 1 },
 
-  // Grid de opções
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, width: '100%', justifyContent: 'center' },
   optCard: {
     width: '18%', minWidth: 60,
@@ -258,7 +374,6 @@ const s = StyleSheet.create({
   optNum:   { fontFamily: GRAFFITI, fontSize: 22 },
   optLbl:   { fontFamily: GRAFFITI, color: '#444', fontSize: 9, letterSpacing: 1, marginTop: 2 },
 
-  // Save bar
   saveBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 10, paddingVertical: 18,
