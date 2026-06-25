@@ -19,13 +19,6 @@ export interface CharacterLook {
   // cores ('' = original)
   cor_cabelo: string;
   cor_sobrancelha: string;
-  cor_olhos: string;
-  cor_nariz: string;
-  cor_boca: string;
-  cor_roupa_top: string;
-  cor_roupa_calca: string;
-  cor_calcado: string;
-  cor_mic: string;
 }
 
 export const DEFAULT_LOOK: CharacterLook = {
@@ -41,13 +34,6 @@ export const DEFAULT_LOOK: CharacterLook = {
   mic: '1',
   cor_cabelo: '',
   cor_sobrancelha: '',
-  cor_olhos: '',
-  cor_nariz: '',
-  cor_boca: '',
-  cor_roupa_top: '',
-  cor_roupa_calca: '',
-  cor_calcado: '',
-  cor_mic: '',
 };
 
 export interface Character {

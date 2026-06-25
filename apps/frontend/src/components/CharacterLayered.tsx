@@ -86,13 +86,6 @@ export default function CharacterLayered({ look, size = 200 }: Props) {
     mic:             look.mic             ?? '1',
     cor_cabelo:      look.cor_cabelo      ?? '',
     cor_sobrancelha: look.cor_sobrancelha ?? '',
-    cor_olhos:       look.cor_olhos       ?? '',
-    cor_nariz:       look.cor_nariz       ?? '',
-    cor_boca:        look.cor_boca        ?? '',
-    cor_roupa_top:   look.cor_roupa_top   ?? '',
-    cor_roupa_calca: look.cor_roupa_calca ?? '',
-    cor_calcado:     look.cor_calcado     ?? '',
-    cor_mic:         look.cor_mic         ?? '',
   };
 
   type Layer = { url: string; flt: string };
@@ -100,17 +93,17 @@ export default function CharacterLayered({ look, size = 200 }: Props) {
     { url: `${BASE}/peles/corpo.png`,              flt: '' },
     { url: `${BASE}/peles/pes.png`,                flt: '' },
     { url: `${BASE}/peles/braco_esq.png`,          flt: '' },
-    { url: `${BASE}/acessorios/braco_mic.png`,     flt: hairFilter(l.cor_mic) },
-    ...(l.mic === '2' ? [{ url: `${BASE}/acessorios/mic_gold.png`,            flt: hairFilter(l.cor_mic) }] : []),
-    ...(l.roupa_calca !== '0' ? [{ url: `${BASE}/roupas/calca${l.roupa_calca}.png`,  flt: hairFilter(l.cor_roupa_calca) }] : []),
-    ...(l.roupa_top   !== '0' ? [{ url: `${BASE}/roupas/top${l.roupa_top}.png`,      flt: hairFilter(l.cor_roupa_top) }]   : []),
-    ...(l.calcado     !== '0' ? [{ url: `${BASE}/acessorios/tenis${l.calcado}.png`,  flt: hairFilter(l.cor_calcado) }]     : []),
+    { url: `${BASE}/acessorios/braco_mic.png`,     flt: '' },
+    ...(l.mic === '2' ? [{ url: `${BASE}/acessorios/mic_gold.png`,           flt: '' }] : []),
+    ...(l.roupa_calca !== '0' ? [{ url: `${BASE}/roupas/calca${l.roupa_calca}.png`, flt: '' }] : []),
+    ...(l.roupa_top   !== '0' ? [{ url: `${BASE}/roupas/top${l.roupa_top}.png`,     flt: '' }] : []),
+    ...(l.calcado     !== '0' ? [{ url: `${BASE}/acessorios/tenis${l.calcado}.png`, flt: '' }] : []),
     { url: `${BASE}/cabeca/1.png`,                 flt: '' },
-    ...(l.cabelo !== '0' ? [{ url: `${BASE}/cabelos/${l.cabelo}.png`,          flt: hairFilter(l.cor_cabelo) }] : []),
-    { url: `${BASE}/Olhos/${l.olhos}.png`,         flt: hairFilter(l.cor_olhos) },
+    ...(l.cabelo !== '0' ? [{ url: `${BASE}/cabelos/${l.cabelo}.png`, flt: hairFilter(l.cor_cabelo) }] : []),
+    { url: `${BASE}/Olhos/${l.olhos}.png`,              flt: '' },
     { url: `${BASE}/sobrancelhas/${l.sobrancelha}.png`, flt: hairFilter(l.cor_sobrancelha) },
-    { url: `${BASE}/Narizes/${l.nariz}.png`,       flt: hairFilter(l.cor_nariz) },
-    { url: `${BASE}/Bocas/${l.boca}.png`,          flt: hairFilter(l.cor_boca) },
+    { url: `${BASE}/Narizes/${l.nariz}.png`,            flt: '' },
+    { url: `${BASE}/Bocas/${l.boca}.png`,               flt: '' },
   ];
 
   if (Platform.OS === 'web') {

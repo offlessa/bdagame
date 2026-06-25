@@ -68,17 +68,10 @@ const HAIR_PRESETS = [
   { value: '320',   bg: '#FF1493', label: 'ROSA'     },
 ];
 
-// Maps each item category to its corresponding color field in CharacterLook
+// Only hair and eyebrows support color customization
 const CAT_COLOR_FIELD: Partial<Record<Category, keyof CharacterLook>> = {
   cabelo:      'cor_cabelo',
   sobrancelha: 'cor_sobrancelha',
-  olhos:       'cor_olhos',
-  nariz:       'cor_nariz',
-  boca:        'cor_boca',
-  roupa_top:   'cor_roupa_top',
-  roupa_calca: 'cor_roupa_calca',
-  calcado:     'cor_calcado',
-  mic:         'cor_mic',
 };
 
 function getLayerUrl(catId: Category, value: string): string | null {
