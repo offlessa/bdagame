@@ -26,15 +26,17 @@ interface CatDef {
 }
 
 const CATEGORIES: CatDef[] = [
-  { id: 'cabelo',      label: 'CABELO',      emoji: '💈', desc: 'Estilo',   options: ['0', '1'] },
-  { id: 'olhos',       label: 'OLHOS',       emoji: '👁',  desc: 'Olhar',   options: ['1','2','3','4','5'] },
-  { id: 'sobrancelha', label: 'SOBRANCELHA', emoji: '🤨', desc: 'Atitude', options: ['1'] },
-  { id: 'nariz',       label: 'NARIZ',       emoji: '👃', desc: 'Forma',   options: ['1','2','3','4','5'] },
-  { id: 'boca',        label: 'BOCA',        emoji: '🎤', desc: 'Flow',    options: ['1','2','3','4','5'] },
-  { id: 'roupa_top',   label: 'JAQUETA',     emoji: '🧥', desc: 'Drip',   options: ['0', '1'] },
-  { id: 'roupa_calca', label: 'CALÇA',       emoji: '👖', desc: 'Estilo', options: ['0', '1'] },
-  { id: 'calcado',     label: 'TÊNIS',       emoji: '👟', desc: 'Swag',   options: ['0', '1'] },
+  { id: 'cabelo',      label: 'CABELO',      emoji: '💈', desc: 'Estilo',   options: ['0', '1', '2', '3'] },
+  { id: 'olhos',       label: 'OLHOS',       emoji: '👁',  desc: 'Olhar',   options: ['1', '2'] },
+  { id: 'sobrancelha', label: 'SOBRANCELHA', emoji: '🤨', desc: 'Atitude', options: ['1', '2'] },
+  { id: 'nariz',       label: 'NARIZ',       emoji: '👃', desc: 'Forma',   options: ['1'] },
+  { id: 'boca',        label: 'BOCA',        emoji: '🎤', desc: 'Flow',    options: ['1', '2'] },
+  { id: 'camiseta',    label: 'CAMISETA',    emoji: '👕', desc: 'Base',    options: ['0', '1'] },
+  { id: 'roupa_top',   label: 'JAQUETA',     emoji: '🧥', desc: 'Drip',   options: ['0', '1', '2'] },
+  { id: 'roupa_calca', label: 'CALÇA',       emoji: '👖', desc: 'Estilo', options: ['0', '1', '2'] },
+  { id: 'calcado',     label: 'TÊNIS',       emoji: '👟', desc: 'Swag',   options: ['0', '1', '2'] },
   { id: 'mic',         label: 'MICROFONE',   emoji: '🎤', desc: 'Flow',   options: ['1', '2'] },
+  { id: 'relogio',     label: 'RELÓGIO',     emoji: '⌚', desc: 'Estilo', options: ['0', '1'] },
 ];
 
 /* ─── Layer preview helpers ─── */
@@ -49,10 +51,12 @@ const CAT_CROP: Partial<Record<Category, [number, number, number, number]>> = {
   olhos:       [1080, 130, 540, 200],
   nariz:       [1120, 190, 460, 230],
   boca:        [1100, 270, 500, 240],
+  camiseta:    [ 870, 340, 400, 380],
   roupa_top:   [ 940, 280, 870, 760],
   roupa_calca: [ 980, 720, 820, 840],
   calcado:     [ 950,1200, 860, 380],
   mic:         [ 840, 230, 590, 470],
+  relogio:     [ 900, 550, 280, 240],
 };
 
 // Moved here so LayerPreview and HueSlider both can access it
@@ -82,12 +86,14 @@ function getLayerUrl(catId: Category, value: string): string | null {
     case 'olhos':       return `/partes-personagem/Olhos/${value}.png`;
     case 'nariz':       return `/partes-personagem/Narizes/${value}.png`;
     case 'boca':        return `/partes-personagem/Bocas/${value}.png`;
+    case 'camiseta':    return `/partes-personagem/roupas/camiseta${value}.png`;
     case 'roupa_top':   return `/partes-personagem/roupas/top${value}.png`;
     case 'roupa_calca': return `/partes-personagem/roupas/calca${value}.png`;
     case 'calcado':     return `/partes-personagem/acessorios/tenis${value}.png`;
     case 'mic':         return value === '1'
       ? `/partes-personagem/acessorios/braco_mic.png`
       : `/partes-personagem/acessorios/mic_gold.png`;
+    case 'relogio':     return `/partes-personagem/acessorios/relogio${value}.png`;
     default:            return null;
   }
 }

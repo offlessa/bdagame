@@ -11,11 +11,13 @@ export interface CharacterLook {
   nariz: string;
   boca: string;
   // outfit
+  camiseta: string;
   roupa_top: string;
   roupa_calca: string;
   calcado: string;
   // acessórios
   mic: string;
+  relogio: string;
   // cores ('' = original)
   cor_cabelo: string;
   cor_sobrancelha: string;
@@ -28,10 +30,12 @@ export const DEFAULT_LOOK: CharacterLook = {
   olhos: '1',
   nariz: '1',
   boca: '1',
+  camiseta: '0',
   roupa_top: '1',
   roupa_calca: '1',
   calcado: '1',
   mic: '1',
+  relogio: '0',
   cor_cabelo: '',
   cor_sobrancelha: '',
 };
