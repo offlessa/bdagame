@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView,
+  View, Text, Image, TouchableOpacity, ScrollView,
   StyleSheet, ImageBackground, Platform, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -77,6 +77,96 @@ const CATEGORIES: CatDef[] = [
   },
 ];
 
+/* ─── Layer preview helpers ─── */
+
+const CANVAS_W = 2646;
+const CANVAS_H = 1701;
+
+// Approximate crop regions [x, y, w, h] in canvas space for each category
+const CAT_CROP: Partial<Record<Category, [number, number, number, number]>> = {
+  cabelo:      [1050,  50, 600, 420],
+  sobrancelha: [1080, 100, 540, 180],
+  olhos:       [1080, 130, 540, 200],
+  nariz:       [1120, 190, 460, 230],
+  boca:        [1100, 270, 500, 240],
+  roupa_top:   [ 940, 280, 870, 760],
+  roupa_calca: [ 980, 720, 820, 840],
+  calcado:     [ 950,1200, 860, 380],
+  mic:         [ 840, 230, 590, 470],
+};
+
+// Moved here so LayerPreview and HueSlider both can access it
+const HAIR_PRESETS = [
+  { value: '',      bg: '#111111', label: 'PRETO'    },
+  { value: 'white', bg: '#E8E8E8', label: 'BRANCO'   },
+  { value: '0',     bg: '#FF1A00', label: 'VERMELHO' },
+  { value: '38',    bg: '#FF6600', label: 'LARANJA'  },
+  { value: 'yellow', bg: '#FFD700', label: 'AMARELO' },
+  { value: '120',   bg: '#00CC44', label: 'VERDE'    },
+  { value: '210',   bg: '#1E90FF', label: 'AZUL'     },
+  { value: '270',   bg: '#9900FF', label: 'ROXO'     },
+  { value: '320',   bg: '#FF1493', label: 'ROSA'     },
+];
+
+function getLayerUrl(catId: Category, value: string): string | null {
+  if (!value || value === '0') return null;
+  switch (catId) {
+    case 'cabelo':      return `/partes-personagem/cabelos/${value}.png`;
+    case 'sobrancelha': return `/partes-personagem/sobrancelhas/${value}.png`;
+    case 'olhos':       return `/partes-personagem/Olhos/${value}.png`;
+    case 'nariz':       return `/partes-personagem/Narizes/${value}.png`;
+    case 'boca':        return `/partes-personagem/Bocas/${value}.png`;
+    case 'roupa_top':   return `/partes-personagem/roupas/top${value}.png`;
+    case 'roupa_calca': return `/partes-personagem/roupas/calca${value}.png`;
+    case 'calcado':     return `/partes-personagem/acessorios/tenis${value}.png`;
+    case 'mic':         return value === '1'
+      ? `/partes-personagem/acessorios/braco_mic.png`
+      : `/partes-personagem/acessorios/mic_gold.png`;
+    default:            return null;
+  }
+}
+
+// Renders a cropped PNG layer preview — or a colored circle for cor_cabelo / 🚫 for none
+function LayerPreview({ catId, value, size }: { catId: Category; value: string; size: number }) {
+  if (catId === 'cor_cabelo') {
+    const preset = HAIR_PRESETS.find(p => p.value === value);
+    const bg = preset?.bg ?? '#111111';
+    return (
+      <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }} />
+    );
+  }
+
+  if (value === '0') {
+    return <Text style={{ fontSize: size * 0.5, lineHeight: size, textAlign: 'center' }}>🚫</Text>;
+  }
+
+  const url = getLayerUrl(catId, value);
+  if (!url) return <Text style={{ fontSize: size * 0.4, lineHeight: size, color: '#555', textAlign: 'center' }}>—</Text>;
+
+  const crop = CAT_CROP[catId];
+  if (Platform.OS === 'web' && crop) {
+    const [cx, cy, cw, ch] = crop;
+    const scale = size / Math.max(cw, ch);
+    const scaledW = Math.round(CANVAS_W * scale);
+    const scaledH = Math.round(CANVAS_H * scale);
+    const Div = 'div' as any;
+    const Img = 'img' as any;
+    return (
+      <Div style={{ width: size, height: size, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+        <Img src={url} style={{
+          position: 'absolute',
+          top: -Math.round(cy * scale),
+          left: -Math.round(cx * scale),
+          width: scaledW,
+          height: scaledH,
+        }} />
+      </Div>
+    );
+  }
+
+  return <Image source={{ uri: url }} style={{ width: size, height: size }} resizeMode="contain" />;
+}
+
 export default function CharacterAppearanceScreen() {
   const { userId } = useAuthStore();
   const { character, updateLook } = useCharacterStore();
@@ -91,6 +181,7 @@ export default function CharacterAppearanceScreen() {
 
   const [look, setLook]         = useState<CharacterLook>(initialLook);
   const [category, setCategory] = useState<Category>('cabelo');
+  const [saved, setSaved]       = useState(false);
 
   const activeCat = CATEGORIES.find(c => c.id === category)!;
 
@@ -100,8 +191,15 @@ export default function CharacterAppearanceScreen() {
 
   async function handleSave() {
     await updateLook(look, userId!);
-    router.back();
+    savedLook.current = look;
+    setSaved(true);
   }
+
+  useEffect(() => {
+    if (!saved) return;
+    const t = setTimeout(() => router.replace('/menu'), 1200);
+    return () => clearTimeout(t);
+  }, [saved]);
 
   function handleBack() {
     const hasChanges = JSON.stringify(look) !== JSON.stringify(savedLook.current);
@@ -190,7 +288,9 @@ export default function CharacterAppearanceScreen() {
                 onPress={() => setCategory(cat.id)}
                 activeOpacity={0.75}
               >
-                <Text style={s.tabEmoji}>{cat.emoji}</Text>
+                <View style={s.tabEmoji}>
+                  <LayerPreview catId={cat.id} value={look[cat.id] as string} size={28} />
+                </View>
                 <Text style={[s.tabLabel, active && { color: '#0A0A0A' }]}>{cat.label}</Text>
                 <Text style={[s.tabDesc,  active && { color: '#0A0A0A80' }]}>{cat.desc}</Text>
               </TouchableOpacity>
@@ -203,7 +303,7 @@ export default function CharacterAppearanceScreen() {
           <HueSlider value={currentValue} accent={accent} onChange={select} />
         ) : (
           <View style={s.grid}>
-            {(activeCat.options ?? []).map((id, i) => {
+            {(activeCat.options ?? []).map((id) => {
               const sel = id === currentValue;
               return (
                 <TouchableOpacity
@@ -221,7 +321,9 @@ export default function CharacterAppearanceScreen() {
                       <Ionicons name="checkmark" size={11} color="#000" />
                     </View>
                   )}
-                  <Text style={s.optEmoji}>{(activeCat.icons ?? [])[i]}</Text>
+                  <View style={s.optEmoji}>
+                    <LayerPreview catId={activeCat.id} value={id} size={52} />
+                  </View>
                   <Text style={[s.optNum, { color: sel ? accent : '#333' }]}>{id}</Text>
                   <Text style={[s.optLbl, sel && { color: accent }]}>OPÇÃO {id}</Text>
                 </TouchableOpacity>
@@ -239,23 +341,17 @@ export default function CharacterAppearanceScreen() {
         <Ionicons name="checkmark-circle" size={22} color="#0A0A0A" />
         <Text style={s.saveBarTxt}>SALVAR PERSONAGEM</Text>
       </TouchableOpacity>
+      {/* Toast de sucesso */}
+      {saved && (
+        <View style={s.toast}>
+          <Text style={s.toastTxt}>✓ PERSONAGEM SALVO!</Text>
+        </View>
+      )}
     </ImageBackground>
   );
 }
 
 /* ── Hue Slider ── */
-const HAIR_PRESETS = [
-  { value: '',      bg: '#111111', label: 'PRETO'    },
-  { value: 'white', bg: '#E8E8E8', label: 'BRANCO'   },
-  { value: '0',     bg: '#FF1A00', label: 'VERMELHO' },
-  { value: '38',    bg: '#FF6600', label: 'LARANJA'  },
-  { value: 'yellow', bg: '#FFD700', label: 'AMARELO'  },
-  { value: '120',   bg: '#00CC44', label: 'VERDE'    },
-  { value: '210',   bg: '#1E90FF', label: 'AZUL'     },
-  { value: '270',   bg: '#9900FF', label: 'ROXO'     },
-  { value: '320',   bg: '#FF1493', label: 'ROSA'     },
-];
-
 function HueSlider({ value, accent, onChange }: {
   value: string; accent: string; onChange: (v: string) => void;
 }) {
@@ -353,7 +449,7 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)', gap: 2,
     minWidth: 72,
   },
-  tabEmoji: { fontSize: 18 },
+  tabEmoji: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   tabLabel: { fontFamily: GRAFFITI, color: '#888', fontSize: 11, letterSpacing: 1 },
   tabDesc:  { color: '#444', fontSize: 9, letterSpacing: 1 },
 
@@ -370,7 +466,7 @@ const s = StyleSheet.create({
     width: 20, height: 20, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center', zIndex: 10,
   },
-  optEmoji: { fontSize: 26, marginBottom: 4 },
+  optEmoji: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   optNum:   { fontFamily: GRAFFITI, fontSize: 22 },
   optLbl:   { fontFamily: GRAFFITI, color: '#444', fontSize: 9, letterSpacing: 1, marginTop: 2 },
 
@@ -385,4 +481,12 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.18)',
   },
   saveBarTxt: { fontFamily: GRAFFITI, color: '#0A0A0A', fontSize: 20, letterSpacing: 4 },
+
+  toast: {
+    position: 'absolute', bottom: 100, alignSelf: 'center',
+    backgroundColor: '#1A1A1A', borderRadius: 30,
+    paddingHorizontal: 24, paddingVertical: 12,
+    borderWidth: 1.5, borderColor: GOLD,
+  },
+  toastTxt: { fontFamily: GRAFFITI, color: GOLD, fontSize: 16, letterSpacing: 3 },
 });
