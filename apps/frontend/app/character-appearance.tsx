@@ -310,22 +310,25 @@ export default function CharacterAppearanceScreen() {
                   key={id}
                   style={[
                     s.optCard,
-                    { borderColor: sel ? accent : 'rgba(255,255,255,0.06)' },
-                    sel && { backgroundColor: accent + '18' },
+                    sel && { borderColor: accent, backgroundColor: accent + '12' },
                   ]}
                   onPress={() => select(id)}
-                  activeOpacity={0.7}
+                  activeOpacity={0.75}
                 >
+                  {/* Selected badge */}
                   {sel && (
                     <View style={[s.selBadge, { backgroundColor: accent }]}>
-                      <Ionicons name="checkmark" size={11} color="#000" />
+                      <Ionicons name="checkmark" size={10} color="#000" />
                     </View>
                   )}
-                  <View style={s.optEmoji}>
-                    <LayerPreview catId={activeCat.id} value={id} size={52} />
+                  {/* Preview stage */}
+                  <View style={[s.optStage, sel && { borderBottomColor: accent + '40' }]}>
+                    <LayerPreview catId={activeCat.id} value={id} size={70} />
                   </View>
-                  <Text style={[s.optNum, { color: sel ? accent : '#333' }]}>{id}</Text>
-                  <Text style={[s.optLbl, sel && { color: accent }]}>OPÇÃO {id}</Text>
+                  {/* Label */}
+                  <Text style={[s.optNum, sel && { color: accent }]}>
+                    {id === '0' ? 'SEM' : id}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -439,36 +442,42 @@ const s = StyleSheet.create({
   divLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.08)' },
   divTxt:  { fontFamily: GRAFFITI, fontSize: 13, letterSpacing: 5, marginHorizontal: 12 },
 
-  tabsScroll: { width: '100%', marginBottom: 16 },
+  tabsScroll: { width: '100%', marginBottom: 14 },
   tabsRow:    { flexDirection: 'row', gap: 8, paddingHorizontal: 2 },
   tab: {
     alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 10, paddingHorizontal: 14,
-    borderRadius: 8, borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: 'rgba(0,0,0,0.5)', gap: 2,
+    paddingVertical: 10, paddingHorizontal: 12,
+    borderRadius: 10, borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.09)',
+    backgroundColor: 'rgba(8,8,8,0.7)', gap: 4,
     minWidth: 72,
   },
-  tabEmoji: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-  tabLabel: { fontFamily: GRAFFITI, color: '#888', fontSize: 11, letterSpacing: 1 },
-  tabDesc:  { color: '#444', fontSize: 9, letterSpacing: 1 },
+  tabEmoji: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  tabLabel: { fontFamily: GRAFFITI, color: '#888', fontSize: 10, letterSpacing: 1 },
+  tabDesc:  { color: '#3A3A3A', fontSize: 8, letterSpacing: 1 },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, width: '100%', justifyContent: 'center' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, width: '100%', justifyContent: 'center' },
   optCard: {
-    width: '18%', minWidth: 60,
-    borderRadius: 8, borderWidth: 2,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    alignItems: 'center', paddingVertical: 14,
-    overflow: 'visible', position: 'relative',
+    width: '30%', minWidth: 95,
+    borderRadius: 12, borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.09)',
+    backgroundColor: 'rgba(8,8,8,0.80)',
+    alignItems: 'center', paddingBottom: 12,
+    overflow: 'hidden', position: 'relative',
+  },
+  optStage: {
+    width: '100%', height: 86,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 10,
   },
   selBadge: {
-    position: 'absolute', top: -8, right: -6,
-    width: 20, height: 20, borderRadius: 10,
+    position: 'absolute', top: 7, right: 7,
+    width: 18, height: 18, borderRadius: 9,
     alignItems: 'center', justifyContent: 'center', zIndex: 10,
   },
-  optEmoji: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  optNum:   { fontFamily: GRAFFITI, fontSize: 22 },
-  optLbl:   { fontFamily: GRAFFITI, color: '#444', fontSize: 9, letterSpacing: 1, marginTop: 2 },
+  optNum: { fontFamily: GRAFFITI, color: '#555', fontSize: 14, letterSpacing: 2 },
 
   saveBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
