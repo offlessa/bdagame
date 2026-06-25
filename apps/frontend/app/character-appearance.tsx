@@ -8,7 +8,7 @@ import { router } from 'expo-router';
 import { useAuthStore } from '../src/store/authStore';
 import { useCharacterStore, CharacterLook, DEFAULT_LOOK } from '../src/store/characterStore';
 import { GRAFFITI } from '../src/theme/fonts';
-import CharacterLayered from '../src/components/CharacterLayered';
+import CharacterLayered, { hairFilter } from '../src/components/CharacterLayered';
 
 const GOLD = '#FFAA00';
 const BG = Platform.OS === 'web' ? { uri: '/bg-wall.png' } : require('../public/bg-wall.png');
@@ -26,55 +26,15 @@ interface CatDef {
 }
 
 const CATEGORIES: CatDef[] = [
-  {
-    id: 'cabelo', label: 'CABELO', emoji: '💈', desc: 'Estilo',
-    options: ['0', '1'],
-    icons: ['🚫', '💇'],
-  },
-  {
-    id: 'cor_cabelo', label: 'COR CABELO', emoji: '🎨', desc: 'Tom',
-    type: 'hue-slider',
-  },
-  {
-    id: 'olhos', label: 'OLHOS', emoji: '👁', desc: 'Expressão',
-    options: ['1', '2', '3', '4', '5'],
-    icons: ['😐', '😌', '😤', '😎', '😈'],
-  },
-  {
-    id: 'sobrancelha', label: 'SOBRANCELHA', emoji: '🤨', desc: 'Atitude',
-    options: ['1'],
-    icons: ['😤'],
-  },
-  {
-    id: 'nariz', label: 'NARIZ', emoji: '👃', desc: 'Forma',
-    options: ['1', '2', '3', '4', '5'],
-    icons: ['🔹', '🔸', '◾', '▫️', '🔺'],
-  },
-  {
-    id: 'boca', label: 'BOCA', emoji: '🎤', desc: 'Flow',
-    options: ['1', '2', '3', '4', '5'],
-    icons: ['😶', '😏', '😬', '😤', '😆'],
-  },
-  {
-    id: 'roupa_top', label: 'JAQUETA', emoji: '🧥', desc: 'Drip',
-    options: ['0', '1'],
-    icons: ['🚫', '🖤'],
-  },
-  {
-    id: 'roupa_calca', label: 'CALÇA', emoji: '👖', desc: 'Estilo',
-    options: ['0', '1'],
-    icons: ['🚫', '⛓'],
-  },
-  {
-    id: 'calcado', label: 'TÊNIS', emoji: '👟', desc: 'Swag',
-    options: ['0', '1'],
-    icons: ['🚫', '👟'],
-  },
-  {
-    id: 'mic', label: 'MICROFONE', emoji: '🎤', desc: 'Flow',
-    options: ['1', '2'],
-    icons: ['🎤', '🏆'],
-  },
+  { id: 'cabelo',      label: 'CABELO',      emoji: '💈', desc: 'Estilo',   options: ['0', '1'] },
+  { id: 'olhos',       label: 'OLHOS',       emoji: '👁',  desc: 'Olhar',   options: ['1','2','3','4','5'] },
+  { id: 'sobrancelha', label: 'SOBRANCELHA', emoji: '🤨', desc: 'Atitude', options: ['1'] },
+  { id: 'nariz',       label: 'NARIZ',       emoji: '👃', desc: 'Forma',   options: ['1','2','3','4','5'] },
+  { id: 'boca',        label: 'BOCA',        emoji: '🎤', desc: 'Flow',    options: ['1','2','3','4','5'] },
+  { id: 'roupa_top',   label: 'JAQUETA',     emoji: '🧥', desc: 'Drip',   options: ['0', '1'] },
+  { id: 'roupa_calca', label: 'CALÇA',       emoji: '👖', desc: 'Estilo', options: ['0', '1'] },
+  { id: 'calcado',     label: 'TÊNIS',       emoji: '👟', desc: 'Swag',   options: ['0', '1'] },
+  { id: 'mic',         label: 'MICROFONE',   emoji: '🎤', desc: 'Flow',   options: ['1', '2'] },
 ];
 
 /* ─── Layer preview helpers ─── */
@@ -108,6 +68,19 @@ const HAIR_PRESETS = [
   { value: '320',   bg: '#FF1493', label: 'ROSA'     },
 ];
 
+// Maps each item category to its corresponding color field in CharacterLook
+const CAT_COLOR_FIELD: Partial<Record<Category, keyof CharacterLook>> = {
+  cabelo:      'cor_cabelo',
+  sobrancelha: 'cor_sobrancelha',
+  olhos:       'cor_olhos',
+  nariz:       'cor_nariz',
+  boca:        'cor_boca',
+  roupa_top:   'cor_roupa_top',
+  roupa_calca: 'cor_roupa_calca',
+  calcado:     'cor_calcado',
+  mic:         'cor_mic',
+};
+
 function getLayerUrl(catId: Category, value: string): string | null {
   if (!value || value === '0') return null;
   switch (catId) {
@@ -126,16 +99,10 @@ function getLayerUrl(catId: Category, value: string): string | null {
   }
 }
 
-// Renders a cropped PNG layer preview — or a colored circle for cor_cabelo / 🚫 for none
-function LayerPreview({ catId, value, size }: { catId: Category; value: string; size: number }) {
-  if (catId === 'cor_cabelo') {
-    const preset = HAIR_PRESETS.find(p => p.value === value);
-    const bg = preset?.bg ?? '#111111';
-    return (
-      <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }} />
-    );
-  }
-
+// Renders a cropped PNG layer preview — or 🚫 for none
+function LayerPreview({ catId, value, size, flt }: {
+  catId: Category; value: string; size: number; flt?: string;
+}) {
   if (value === '0') {
     return <Text style={{ fontSize: size * 0.5, lineHeight: size, textAlign: 'center' }}>🚫</Text>;
   }
@@ -159,6 +126,7 @@ function LayerPreview({ catId, value, size }: { catId: Category; value: string; 
           left: -Math.round(cx * scale),
           width: scaledW,
           height: scaledH,
+          ...(flt ? { filter: flt } : {}),
         }} />
       </Div>
     );
@@ -289,7 +257,12 @@ export default function CharacterAppearanceScreen() {
                 activeOpacity={0.75}
               >
                 <View style={s.tabEmoji}>
-                  <LayerPreview catId={cat.id} value={look[cat.id] as string} size={28} />
+                  <LayerPreview
+                    catId={cat.id}
+                    value={look[cat.id] as string}
+                    size={28}
+                    flt={(() => { const cf = CAT_COLOR_FIELD[cat.id]; return cf ? hairFilter(look[cf] as string) : ''; })()}
+                  />
                 </View>
                 <Text style={[s.tabLabel, active && { color: '#0A0A0A' }]}>{cat.label}</Text>
                 <Text style={[s.tabDesc,  active && { color: '#0A0A0A80' }]}>{cat.desc}</Text>
@@ -298,42 +271,57 @@ export default function CharacterAppearanceScreen() {
           })}
         </ScrollView>
 
-        {/* Options — grid or hue slider depending on category type */}
-        {activeCat.type === 'hue-slider' ? (
-          <HueSlider value={currentValue} accent={accent} onChange={select} />
-        ) : (
-          <View style={s.grid}>
-            {(activeCat.options ?? []).map((id) => {
-              const sel = id === currentValue;
-              return (
-                <TouchableOpacity
-                  key={id}
-                  style={[
-                    s.optCard,
-                    sel && { borderColor: accent, backgroundColor: accent + '12' },
-                  ]}
-                  onPress={() => select(id)}
-                  activeOpacity={0.75}
-                >
-                  {/* Selected badge */}
-                  {sel && (
-                    <View style={[s.selBadge, { backgroundColor: accent }]}>
-                      <Ionicons name="checkmark" size={10} color="#000" />
-                    </View>
-                  )}
-                  {/* Preview stage */}
-                  <View style={[s.optStage, sel && { borderBottomColor: accent + '40' }]}>
-                    <LayerPreview catId={activeCat.id} value={id} size={70} />
+        {/* Item options grid */}
+        {(() => {
+          const colorField = CAT_COLOR_FIELD[category];
+          const currentColor = colorField ? (look[colorField] as string) : '';
+          const currentFlt = hairFilter(currentColor);
+          return (
+            <>
+              <View style={s.grid}>
+                {(activeCat.options ?? []).map((id) => {
+                  const sel = id === currentValue;
+                  return (
+                    <TouchableOpacity
+                      key={id}
+                      style={[s.optCard, sel && { borderColor: accent, backgroundColor: accent + '12' }]}
+                      onPress={() => select(id)}
+                      activeOpacity={0.75}
+                    >
+                      {sel && (
+                        <View style={[s.selBadge, { backgroundColor: accent }]}>
+                          <Ionicons name="checkmark" size={10} color="#000" />
+                        </View>
+                      )}
+                      <View style={[s.optStage, sel && { borderBottomColor: accent + '40' }]}>
+                        <LayerPreview catId={activeCat.id} value={id} size={70} flt={id !== '0' ? currentFlt : ''} />
+                      </View>
+                      <Text style={[s.optNum, sel && { color: accent }]}>
+                        {id === '0' ? 'SEM' : id}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Inline color palette — shown when item is equipped */}
+              {currentValue !== '0' && colorField && (
+                <View style={s.colorSection}>
+                  <View style={s.colorSectionHead}>
+                    <View style={s.colorSectionLine} />
+                    <Text style={[s.colorSectionLabel, { color: accent }]}>COR</Text>
+                    <View style={s.colorSectionLine} />
                   </View>
-                  {/* Label */}
-                  <Text style={[s.optNum, sel && { color: accent }]}>
-                    {id === '0' ? 'SEM' : id}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
+                  <HueSlider
+                    value={currentColor}
+                    accent={accent}
+                    onChange={v => setLook(prev => ({ ...prev, [colorField]: v }))}
+                  />
+                </View>
+              )}
+            </>
+          );
+        })()}
 
         <View style={{ height: 16 }} />
       </ScrollView>
@@ -478,6 +466,11 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', zIndex: 10,
   },
   optNum: { fontFamily: GRAFFITI, color: '#555', fontSize: 14, letterSpacing: 2 },
+
+  colorSection: { width: '100%', marginTop: 20, paddingTop: 4 },
+  colorSectionHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
+  colorSectionLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.07)' },
+  colorSectionLabel: { fontFamily: GRAFFITI, fontSize: 13, letterSpacing: 5 },
 
   saveBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
