@@ -27,7 +27,7 @@ public class BattleManager : MonoBehaviour
     {
         _config = config;
         Debug.Log($"Batalha iniciada: {config.playerName} vs {config.opponentName}");
-        ReactBridge.Instance.SendToReact("BATTLE_START", null); // avisa RN
+        ReactBridge.SendToReact("BATTLE_START", null);
         // TODO: carregar cena da batalha, iniciar pista de notas
     }
 

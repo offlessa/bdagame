@@ -54,7 +54,7 @@ public class ReactBridge : MonoBehaviour
         SendToReact("PLAYER_QUIT", null);
     }
 
-    static void SendToReact(string type, string payload)
+    public static void SendToReact(string type, string payload)
     {
 #if UNITY_ANDROID || UNITY_IOS
         // UnitySendMessage chega no onUnityMessage do React Native
@@ -70,17 +70,17 @@ public class ReactBridge : MonoBehaviour
     }
 }
 
-[Serializable] public class RNMessage       { public string type; public string payload; }
+[Serializable] public class RNMessage { public string type; public string payload; }
+
 [Serializable] public class StartBattlePayload
 {
     public string playerName;
     public string opponentName;
     public string track;
     public string difficulty;
-    // look do personagem (expandir conforme necessário)
-    public string cabelo;
-    public string roupa_top;
-    public string calcado;
+    // look completo dos personagens
+    public CharacterLookData playerLook;
+    public CharacterLookData opponentLook;
 }
 [Serializable] public class BattleResultScores { public float flow; public float punchline; public float presenca; }
 [Serializable] public class BattleResult

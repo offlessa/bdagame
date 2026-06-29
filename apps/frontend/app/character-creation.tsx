@@ -30,9 +30,14 @@ export default function CharacterCreationScreen() {
     character ? (ARCHETYPES.find(a => a.name === character.archetype)?.id ?? '') : ''
   );
 
+  function showAlert(msg: string) {
+    if (Platform.OS === 'web') window.alert(msg);
+    else Alert.alert(msg);
+  }
+
   async function handleConfirm() {
-    if (!battleName.trim()) { Alert.alert('Escolha um nome de batalha'); return; }
-    if (!selectedId) { Alert.alert('Escolha seu estilo'); return; }
+    if (!battleName.trim()) { showAlert('Escolha um nome de batalha'); return; }
+    if (!selectedId) { showAlert('Escolha seu estilo'); return; }
     const arch = ARCHETYPES.find(a => a.id === selectedId)!;
     await setCharacter(
       {
