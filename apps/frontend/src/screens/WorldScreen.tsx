@@ -236,7 +236,7 @@ function InteractModal({ npc, visible, onClose }: { npc: NPC | null; visible: bo
     const id = npc?.id;
     if (!id) return;
     onClose();
-    router.push({ pathname: '/rap-slash', params: { npcId: id } });
+    router.push({ pathname: '/pre-battle', params: { npcId: id } });
   }
 
   return (

@@ -111,7 +111,7 @@ export default function MenuScreen() {
       {/* ══════════ BATALHAR CARD ══════════ */}
       <TouchableOpacity
         style={s.battleCard}
-        onPress={() => router.push('/rap-slash')}
+        onPress={() => router.push('/world')}
         activeOpacity={0.85}
       >
         {/* Textura / gradiente */}
@@ -127,10 +127,10 @@ export default function MenuScreen() {
         {/* Texto */}
         <View style={s.battleContent}>
           <Text style={s.battleTitle}>BATALHAR</Text>
-          <Text style={s.battleNextLbl}>Próxima batalha</Text>
-          <Text style={s.battleNextName}>BECO DA ZONA SUL</Text>
+          <Text style={s.battleNextLbl}>Escolha seu oponente</Text>
+          <Text style={s.battleNextName}>UNDERGROUND · SP</Text>
           <View style={s.rewardPill}>
-            <Text style={s.rewardTxt}>✂️  RAP SLASH · +50 RP</Text>
+            <Text style={s.rewardTxt}>🗺️  MAPA DA CARREIRA</Text>
           </View>
         </View>
 
