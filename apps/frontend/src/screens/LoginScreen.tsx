@@ -7,7 +7,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
-import { useCharacterStore } from '../store/characterStore';
+import { useCharacterStore, DEFAULT_LOOK } from '../store/characterStore';
 import { Colors } from '../theme/colors';
 import { GRAFFITI } from '../theme/fonts';
 
@@ -21,8 +21,8 @@ export default function LoginScreen() {
   const [showPass,   setShowPass]   = useState(false);
   const [remember,   setRemember]   = useState(true);
   const [loading,    setLoading]    = useState(false);
-  const setAuth        = useAuthStore(s => s.setAuth);
-  const { loadCharacter } = useCharacterStore();
+  const setAuth                    = useAuthStore(s => s.setAuth);
+  const { loadCharacter, setCharacter } = useCharacterStore();
 
   async function login() {
     if (!identifier || !password) { Alert.alert('Preencha tudo'); return; }
@@ -41,6 +41,18 @@ export default function LoginScreen() {
       router.replace(character ? '/menu' : '/character-creation');
     } catch { Alert.alert('Erro de conexão'); }
     finally { setLoading(false); }
+  }
+
+  async function enterAsGuest() {
+    await setAuth('guest-token', 'guest', 'Visitante', false);
+    await setCharacter({
+      battleName: 'MC VISITANTE',
+      archetype: 'MC INICIANTE',
+      archetypeIcon: '⚡',
+      archetypeColor: '#FFAA00',
+      look: DEFAULT_LOOK,
+    }, 'guest');
+    router.replace('/menu');
   }
 
   const { width } = useWindowDimensions();
@@ -183,6 +195,11 @@ export default function LoginScreen() {
               <Text style={s.createTxt}>CRIAR CONTA</Text>
             </TouchableOpacity>
           </View>
+
+          {/* ══════════ VISITANTE ══════════ */}
+          <TouchableOpacity onPress={enterAsGuest} style={s.guestBtn} activeOpacity={0.7}>
+            <Text style={s.guestTxt}>▶  ENTRAR SEM CONTA</Text>
+          </TouchableOpacity>
 
         </ScrollView>
       </KeyboardAvoidingView>
@@ -329,5 +346,14 @@ const s = StyleSheet.create({
     fontFamily: GRAFFITI, color: PURPLE,
     fontSize: 20, letterSpacing: 4,
     textDecorationLine: 'underline',
+  },
+
+  guestBtn: {
+    marginTop: 18, paddingVertical: 10, paddingHorizontal: 24,
+    borderWidth: 1, borderColor: '#2A2A2A', borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  guestTxt: {
+    fontFamily: GRAFFITI, color: '#444', fontSize: 14, letterSpacing: 3,
   },
 });
